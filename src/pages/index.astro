@@ -297,8 +297,30 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         FILTER NAV — enhanced
+         FILTER NAV — offset untuk fixed navbar (56px)
       ============================================================ */
+      #filter-nav {
+        /* Duduk persis di bawah fixed navbar, tidak tertutup sama sekali */
+        top: 56px;
+      }
+
+      /* Garis indikator aktif di bawah nav — slide animasi */
+      #filter-nav-track {
+        position: relative;
+      }
+      #filter-nav-indicator {
+        position: absolute;
+        bottom: 0;
+        height: 2px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 1px;
+        transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                    width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                    opacity 0.25s;
+        pointer-events: none;
+        will-change: left, width;
+      }
+
       .filter-btn {
         position: relative;
         overflow: hidden;
@@ -306,6 +328,8 @@ const MAX_SCROLL_IMAGES = 3;
         transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s;
       }
       .filter-btn:active { transform: scale(0.95); }
+
+      /* Subtle shimmer on hover */
       .filter-btn::before {
         content: '';
         position: absolute;
@@ -316,6 +340,11 @@ const MAX_SCROLL_IMAGES = 3;
         border-radius: inherit;
       }
       .filter-btn:hover::before { opacity: 1; }
+
+      /* Active state tambahan: ring glow */
+      .filter-btn[data-active="true"] {
+        box-shadow: 0 0 12px rgba(255,255,255,0.15);
+      }
 
       /* ============================================================
          SITE HEADER — new top navbar
@@ -746,7 +775,7 @@ const MAX_SCROLL_IMAGES = 3;
         onPrimaryClick={() => {
           const el = document.getElementById('projects-container');
           if (el) {
-            const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+            const y = el.getBoundingClientRect().top + window.pageYOffset - (56 + 48 + 8);
             window.scrollTo({ top: y, behavior: 'smooth' });
           }
         }}
@@ -771,18 +800,30 @@ const MAX_SCROLL_IMAGES = 3;
     </div>
 
     <!-- ============================================================
-         FILTER NAV
+         FILTER NAV — sticky tepat di bawah fixed navbar (top-[56px])
     ============================================================ -->
-    <nav id="filter-nav" class="sticky top-0 z-50 py-3 bg-zinc-950/85 backdrop-blur-2xl border-b border-white/5 flex justify-start md:justify-center gap-2 overflow-x-auto px-6 reveal-up no-scrollbar">
-      {categories.map((cat) => (
-        <button
-          data-filter={cat}
-          class="filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-[10px] md:text-xs font-semibold tracking-widest uppercase border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white"
-          data-active={cat === 'All'}
-        >
-          {cat}
-        </button>
-      ))}
+    <nav id="filter-nav" class="sticky top-[56px] z-[150] py-3 bg-zinc-950/90 backdrop-blur-2xl border-b border-white/[0.06] reveal-up no-scrollbar overflow-hidden">
+      <!-- Fade edges kiri-kanan untuk hint scroll pada mobile -->
+      <div class="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
+      <div class="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
+
+      <div id="filter-nav-track" class="flex justify-start md:justify-center gap-2 overflow-x-auto px-6 no-scrollbar relative">
+        {categories.map((cat) => {
+          const count = cat === 'All'
+            ? (projects?.length ?? 0)
+            : (projects?.filter(p => p.category === cat).length ?? 0);
+          return (
+            <button
+              data-filter={cat}
+              class="filter-btn flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] md:text-xs font-semibold tracking-widest uppercase border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white"
+              data-active={cat === 'All'}
+            >
+              {cat}
+              <span class="font-mono text-[9px] opacity-50 tabular-nums">{count}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
 
     <!-- ============================================================
@@ -963,25 +1004,48 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </footer>
 
-    <!-- ============================================================
-         MUSIC PLAYER
-    ============================================================ -->
-    <audio id="bg-music" loop preload="none">
-      <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
-    </audio>
-    <button id="music-toggle" class="fixed bottom-6 right-6 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/60 p-4 rounded-full shadow-2xl flex items-center justify-center" aria-label="Toggle Music">
-      <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-      <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-    </button>
+<!-- ============================================================
+     MUSIC PLAYER
+============================================================ -->
+<audio id="bg-music" loop preload="none">
+  <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
+</audio>
 
-    <!-- ============================================================
-         BACK TO TOP
-    ============================================================ -->
-    <button id="back-to-top" aria-label="Kembali ke atas">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="18 15 12 9 6 15"></polyline>
-      </svg>
-    </button>
+<!-- ============================================================
+     COMBINED FLOATING BUTTON (Back to Top + Music)
+============================================================ -->
+<div class="fixed bottom-6 right-6 z-[100] flex flex-col items-center bg-zinc-900/80 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+
+  <!-- Back to Top -->
+  <button
+    id="back-to-top"
+    aria-label="Kembali ke atas"
+    class="text-white/60 p-4 flex items-center justify-center hover:text-white hover:bg-white/5 transition-colors w-full"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
+  <!-- Divider -->
+  <div class="w-full h-px bg-white/10"></div>
+
+  <!-- Music Toggle -->
+  <button
+    id="music-toggle"
+    aria-label="Toggle Music"
+    class="text-white/60 p-4 flex items-center justify-center hover:text-white hover:bg-white/5 transition-colors w-full"
+  >
+    <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block">
+      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+    </svg>
+    <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+      <rect x="6" y="4" width="4" height="16"></rect>
+      <rect x="14" y="4" width="4" height="16"></rect>
+    </svg>
+  </button>
+
+</div>
 
     <!-- ============================================================
          LIGHTBOX
@@ -1047,7 +1111,14 @@ const MAX_SCROLL_IMAGES = 3;
         const dots     = qsa('.dot-nav-item');
         const sections = qsa('.project-section');
         if (dots.length && sections.length) {
-          dots.forEach((dot, i) => dot.addEventListener('click', () => sections[i]?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
+          // Offset scroll: navbar (56px) + filter nav (~48px) + extra 8px
+          const SCROLL_OFFSET = 56 + 48 + 8;
+          dots.forEach((dot, i) => dot.addEventListener('click', () => {
+            const section = sections[i] as HTMLElement | undefined;
+            if (!section) return;
+            const y = section.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }));
           const dotObs = new IntersectionObserver(
             entries => entries.forEach(e => {
               const idx = parseInt((e.target as HTMLElement).dataset.projectIndex || '0');
@@ -1058,17 +1129,36 @@ const MAX_SCROLL_IMAGES = 3;
           sections.forEach(s => dotObs.observe(s));
         }
 
-        // ── 5. FILTER ─────────────────────────────────────────────
-        qsa('.filter-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            qsa('.filter-btn').forEach(b => b.setAttribute('data-active', 'false'));
-            btn.setAttribute('data-active', 'true');
-            const filter = btn.getAttribute('data-filter');
-            (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
-              s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'flex' : 'none';
-            });
+        // ── 5. FILTER — dengan auto-scroll pill & glow state ─────
+        const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
+        const filterNav  = qs('#filter-nav') as HTMLElement;
+
+        // Scroll active pill ke tengah viewport filter nav (mobile)
+        const scrollBtnIntoView = (btn: HTMLElement) => {
+          const track = qs('#filter-nav-track') as HTMLElement;
+          if (!track) return;
+          const btnLeft   = btn.offsetLeft;
+          const btnWidth  = btn.offsetWidth;
+          const trackW    = track.clientWidth;
+          const targetScroll = btnLeft - (trackW / 2) + (btnWidth / 2);
+          track.scrollTo({ left: targetScroll, behavior: 'smooth' });
+        };
+
+        const setActiveFilter = (targetBtn: HTMLElement) => {
+          filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
+          targetBtn.setAttribute('data-active', 'true');
+          scrollBtnIntoView(targetBtn);
+          const filter = targetBtn.getAttribute('data-filter');
+          (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
+            s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'flex' : 'none';
           });
-        });
+        };
+
+        filterBtns.forEach(btn => btn.addEventListener('click', () => setActiveFilter(btn)));
+
+        // Init: pastikan "All" ter-scroll ke view
+        const initActive = qs('.filter-btn[data-active="true"]') as HTMLElement | null;
+        if (initActive) requestAnimationFrame(() => scrollBtnIntoView(initActive));
 
         // ── 6. PARALLAX (desktop, rAF-throttled) ─────────────────
         if (!isMobile() && !prefersReducedMotion) {
