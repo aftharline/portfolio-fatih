@@ -62,7 +62,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         height: calc(var(--img-count) * 100svh);
       }
 
-      /* --- CINEMATIC REVEAL ANIMATIONS (SUPER SMOOTH) --- */
+      /* --- CINEMATIC REVEAL ANIMATIONS --- */
       .reveal-up {
         opacity: 0;
         transform: translateY(40px);
@@ -76,7 +76,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         filter: blur(0px);
       }
       
-      /* Staggering Delays buat efek berurutan */
       .delay-100 { transition-delay: 100ms; }
       .delay-200 { transition-delay: 200ms; }
       .delay-300 { transition-delay: 300ms; }
@@ -102,15 +101,15 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           filter: grayscale(0%) brightness(0.9);
         }
       }
-      
-      #mouse-glow {
-        will-change: transform;
-      }
 
-      /* Biar tombol-tombol responsif di HP */
+      /* Responsif di HP */
       button, .project-image {
         touch-action: manipulation;
         cursor: pointer;
+      }
+
+      #mouse-glow {
+        will-change: transform;
       }
     </style>
   </head>
@@ -133,8 +132,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
 
     </div>
 
-	<div class="fixed inset-0 -z-50 bg-zinc-950/70 overflow-hidden pointer-events-none">
-    </div>
+    <div class="fixed inset-0 -z-50 bg-zinc-950/70 overflow-hidden pointer-events-none"></div>
 
     <div class="relative z-10 w-full mb-12 border-b border-white/5">
       <PixelHero 
@@ -146,15 +144,12 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         primaryCtaMobile="Jelajahi"
         secondaryCta="Mari Berkolaborasi"
         secondaryCtaMobile="Kontak"
-        
         onPrimaryClick={() => {
             const el = document.getElementById('projects-container');
             if (el) {
                 const yOffset = -20;
                 const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
                 window.scrollTo({ top: y, behavior: 'smooth' });
-            } else {
-                console.error("Elemen projects-container tidak ditemukan!");
             }
         }}
         githubUrl="#wa-form"
@@ -275,13 +270,11 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         </div>
 
         <div class="hidden md:flex w-full md:w-1/2 h-[550px] md:h-[650px] relative items-end justify-center reveal-up delay-300">
-          
           <SplineScene 
             client:visible
             scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode" 
             className="w-full h-full cursor-grab active:cursor-grabbing scale-[1.15] translate-y-6"
           />
-
         </div>
 
       </div>
@@ -334,33 +327,162 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     <script>
       document.addEventListener('astro:page-load', () => {
 
-        // --- INTERSECTION OBSERVER (ANIMASI TEKS SAAT SCROLL) ---
-        const observerOptions = {
-          root: null,
-          rootMargin: '0px',
-          threshold: 0.15
-        };
+        // ============================================================
+        // SECTION 1: SEMUA DEVICE (Mobile + Desktop)
+        // ============================================================
 
+        // --- INTERSECTION OBSERVER (ANIMASI TEKS SAAT SCROLL) ---
+        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
               entry.target.classList.add('in-view');
-              observer.unobserve(entry.target); 
+              observer.unobserve(entry.target);
             }
           });
         }, observerOptions);
-
         document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
 
+        // --- FILTER SYSTEM ---
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const projectSections = document.querySelectorAll('.project-section');
+        filterButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            filterButtons.forEach(b => b.setAttribute('data-active', 'false'));
+            btn.setAttribute('data-active', 'true');
+            const filter = btn.getAttribute('data-filter');
+            projectSections.forEach(section => {
+              const element = section as HTMLElement;
+              const category = element.getAttribute('data-category');
+              element.style.display = (filter === 'All' || category === filter) ? 'flex' : 'none';
+            });
+          });
+        });
 
-        // --- PENJAGA GAWANG PERFORMA ---
-        if (window.innerWidth < 768) return; 
+        // --- MUSIC PLAYER SYSTEM ---
+        const bgMusic = document.getElementById('bg-music') as HTMLAudioElement;
+        const musicToggle = document.getElementById('music-toggle');
+        const iconPlay = document.getElementById('music-icon-play');
+        const iconPause = document.getElementById('music-icon-pause');
+        if (musicToggle && bgMusic) {
+          bgMusic.volume = 0.3;
+          let isPlaying = false;
+          musicToggle.addEventListener('click', () => {
+            if (isPlaying) {
+              bgMusic.pause();
+              iconPause?.classList.add('hidden');
+              iconPlay?.classList.remove('hidden');
+              musicToggle.classList.remove('animate-pulse-subtle', 'bg-white', 'text-black');
+            } else {
+              bgMusic.play();
+              iconPlay?.classList.add('hidden');
+              iconPause?.classList.remove('hidden');
+              musicToggle.classList.add('animate-pulse-subtle', 'bg-white', 'text-black');
+            }
+            isPlaying = !isPlaying;
+          });
+        }
 
-        // --- CINEMATIC GRID CROSSHAIR TRACKER (SUPER SMOOTH LERP) ---
+        // --- LIGHTBOX SYSTEM ---
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox) {
+          let currentImages: string[] = [];
+          let currentIndex = 0;
+          let zoomLevel = 1;
+
+          const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+          const imgZoomWrapper = document.getElementById('img-zoom-wrapper')!;
+          const closeBtn = document.getElementById('close-lightbox')!;
+          const prevBtn = document.getElementById('prev-btn')!;
+          const nextBtn = document.getElementById('next-btn')!;
+          const counter = document.getElementById('lightbox-counter')!;
+          const btnZoomIn = document.getElementById('zoom-in')!;
+          const btnZoomOut = document.getElementById('zoom-out')!;
+          const btnZoomReset = document.getElementById('zoom-reset')!;
+          const zoomIndicator = document.getElementById('zoom-indicator')!;
+
+          function applyZoom() {
+            imgZoomWrapper.style.transform = `scale(${zoomLevel})`;
+            zoomIndicator.innerText = `${Math.round(zoomLevel * 100)}%`;
+          }
+          function resetZoom() { zoomLevel = 1; applyZoom(); }
+
+          function updateLightboxContent() {
+            lightboxImg.src = currentImages[currentIndex];
+            counter.innerText = `${currentIndex + 1} / ${currentImages.length}`;
+            resetZoom();
+            prevBtn.classList.toggle('hidden', currentImages.length <= 1);
+            nextBtn.classList.toggle('hidden', currentImages.length <= 1);
+          }
+
+          function openLightbox() {
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            updateLightboxContent();
+          }
+
+          function closeLightbox() {
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            document.body.style.overflow = '';
+            resetZoom();
+          }
+
+          document.querySelectorAll('.project-image').forEach(img => {
+            img.addEventListener('click', (e) => {
+              const target = e.target as HTMLImageElement;
+              currentImages = JSON.parse(target.dataset.images!);
+              currentIndex = parseInt(target.dataset.index!);
+              openLightbox();
+            });
+          });
+
+          nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIndex = (currentIndex + 1) % currentImages.length; updateLightboxContent(); });
+          prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length; updateLightboxContent(); });
+          closeBtn.addEventListener('click', closeLightbox);
+          lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || (e.target as HTMLElement).classList.contains('relative')) closeLightbox();
+          });
+
+          btnZoomIn.addEventListener('click', (e) => { e.stopPropagation(); if (zoomLevel < 3.5) { zoomLevel += 0.25; applyZoom(); } });
+          btnZoomOut.addEventListener('click', (e) => { e.stopPropagation(); if (zoomLevel > 0.5) { zoomLevel -= 0.25; applyZoom(); } });
+          btnZoomReset.addEventListener('click', (e) => { e.stopPropagation(); resetZoom(); });
+
+          document.addEventListener('keydown', (e) => {
+            if (lightbox.classList.contains('hidden')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight' && currentImages.length > 1) nextBtn.click();
+            if (e.key === 'ArrowLeft' && currentImages.length > 1) prevBtn.click();
+            if (e.key === '=' || e.key === '+') btnZoomIn.click();
+            if (e.key === '-') btnZoomOut.click();
+          });
+        }
+
+        // --- WA FORM ---
+        const waForm = document.getElementById('wa-form') as HTMLFormElement;
+        if (waForm) {
+          waForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = (document.getElementById('wa-name') as HTMLInputElement).value;
+            const topic = (document.getElementById('wa-topic') as HTMLInputElement).value;
+            const message = (document.getElementById('wa-message') as HTMLTextAreaElement).value;
+            const phoneNumber = '6285707109853';
+            const text = `Halo Fatih, saya ${name}.\n\nSaya mau ngobrolin soal: *${topic}*\n\n${message}`;
+            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
+          });
+        }
+
+        // ============================================================
+        // SECTION 2: DESKTOP ONLY — Crosshair tracker
+        // Guard ini HANYA membatasi kode crosshair, bukan semua fitur
+        // ============================================================
+        if (window.innerWidth < 768) return;
+
         const chH = document.getElementById('crosshair-h')!;
         const chV = document.getElementById('crosshair-v')!;
         const coords = document.getElementById('cursor-coords')!;
-        
+
         if (chH && chV && coords) {
           let mouseX = window.innerWidth / 2;
           let mouseY = window.innerHeight / 2;
@@ -371,7 +493,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            
             if (!isHovering) {
               chH.classList.remove('opacity-0');
               chV.classList.remove('opacity-0');
@@ -392,154 +513,16 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           function animateCrosshair() {
             curX += (mouseX - curX) * 0.15;
             curY += (mouseY - curY) * 0.15;
-            
             chH.style.transform = `translate3d(0, ${curY}px, 0)`;
             chV.style.transform = `translate3d(${curX}px, 0, 0)`;
-            
             coords.style.transform = `translate3d(${curX + 15}px, ${curY + 15}px, 0)`;
             coords.innerText = `X:${Math.round(curX)} // Y:${Math.round(curY)}`;
-            
             requestAnimationFrame(animateCrosshair);
           }
 
           animateCrosshair();
         }
 
-        // --- FILTER SYSTEM ---
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const projectSections = document.querySelectorAll('.project-section');
-
-        filterButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.setAttribute('data-active', 'false'));
-            btn.setAttribute('data-active', 'true');
-            
-            const filter = btn.getAttribute('data-filter');
-
-            projectSections.forEach(section => {
-              const element = section as HTMLElement;
-              const category = element.getAttribute('data-category');
-              
-              if (filter === 'All' || category === filter) {
-                element.style.display = 'flex'; 
-              } else {
-                element.style.display = 'none';
-              }
-            });
-          });
-        });
-
-        // --- MUSIC PLAYER SYSTEM ---
-        const bgMusic = document.getElementById('bg-music') as HTMLAudioElement;
-        const musicToggle = document.getElementById('music-toggle');
-        const iconPlay = document.getElementById('music-icon-play');
-        const iconPause = document.getElementById('music-icon-pause');
-
-        if (musicToggle && bgMusic) {
-          bgMusic.volume = 0.3; 
-          let isPlaying = false;
-
-          musicToggle.addEventListener('click', () => {
-            if (isPlaying) {
-              bgMusic.pause();
-              iconPause?.classList.add('hidden');
-              iconPlay?.classList.remove('hidden');
-              musicToggle.classList.remove('animate-pulse-subtle', 'bg-white', 'text-black');
-            } else {
-              bgMusic.play();
-              iconPlay?.classList.add('hidden');
-              iconPause?.classList.remove('hidden');
-              musicToggle.classList.add('animate-pulse-subtle', 'bg-white', 'text-black');
-            }
-            isPlaying = !isPlaying;
-          });
-        }
-
-        // --- LIGHTBOX SYSTEM ---
-        const lightbox = document.getElementById('lightbox');
-        if (!lightbox) return;
-
-        let currentImages: string[] = [];
-        let currentIndex = 0;
-        let zoomLevel = 1;
-
-        const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
-        const imgZoomWrapper = document.getElementById('img-zoom-wrapper')!;
-        const closeBtn = document.getElementById('close-lightbox')!;
-        const prevBtn = document.getElementById('prev-btn')!;
-        const nextBtn = document.getElementById('next-btn')!;
-        const counter = document.getElementById('lightbox-counter')!;
-        const btnZoomIn = document.getElementById('zoom-in')!;
-        const btnZoomOut = document.getElementById('zoom-out')!;
-        const btnZoomReset = document.getElementById('zoom-reset')!;
-        const zoomIndicator = document.getElementById('zoom-indicator')!;
-
-        document.querySelectorAll('.project-image').forEach(img => {
-          img.addEventListener('click', (e) => {
-            const target = e.target as HTMLImageElement;
-            currentImages = JSON.parse(target.dataset.images!);
-            currentIndex = parseInt(target.dataset.index!);
-            openLightbox();
-          });
-        });
-
-        function openLightbox() {
-          lightbox!.classList.remove('hidden');
-          lightbox!.classList.add('flex');
-          document.body.style.overflow = 'hidden';
-          resetZoom();
-          updateLightboxContent();
-        }
-
-        function closeLightbox() {
-          lightbox!.classList.add('hidden');
-          lightbox!.classList.remove('flex');
-          document.body.style.overflow = '';
-          resetZoom();
-        }
-
-        function updateLightboxContent() {
-          lightboxImg.src = currentImages[currentIndex];
-          counter.innerText = `${currentIndex + 1} / ${currentImages.length}`;
-          resetZoom();
-          prevBtn.classList.toggle('hidden', currentImages.length <= 1);
-          nextBtn.classList.toggle('hidden', currentImages.length <= 1);
-        }
-
-        nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIndex = (currentIndex + 1) % currentImages.length; updateLightboxContent(); });
-        prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length; updateLightboxContent(); });
-        closeBtn.addEventListener('click', closeLightbox);
-        lightbox.addEventListener('click', (e) => { if (e.target === lightbox || (e.target as HTMLElement).classList.contains('relative')) closeLightbox(); });
-
-        function applyZoom() { imgZoomWrapper.style.transform = `scale(${zoomLevel})`; zoomIndicator.innerText = `${Math.round(zoomLevel * 100)}%`; }
-        function resetZoom() { zoomLevel = 1; applyZoom(); }
-
-        btnZoomIn.addEventListener('click', (e) => { e.stopPropagation(); if (zoomLevel < 3.5) { zoomLevel += 0.25; applyZoom(); } });
-        btnZoomOut.addEventListener('click', (e) => { e.stopPropagation(); if (zoomLevel > 0.5) { zoomLevel -= 0.25; applyZoom(); } });
-        btnZoomReset.addEventListener('click', (e) => { e.stopPropagation(); resetZoom(); });
-
-        document.addEventListener('keydown', (e) => {
-          if (lightbox!.classList.contains('hidden')) return;
-          if (e.key === 'Escape') closeLightbox();
-          if (e.key === 'ArrowRight' && currentImages.length > 1) nextBtn.click();
-          if (e.key === 'ArrowLeft' && currentImages.length > 1) prevBtn.click();
-          if (e.key === '=' || e.key === '+') btnZoomIn.click();
-          if (e.key === '-') btnZoomOut.click();
-        });
-
-        // --- WA FORM ---
-        const waForm = document.getElementById('wa-form') as HTMLFormElement;
-        if (waForm) {
-          waForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = (document.getElementById('wa-name') as HTMLInputElement).value;
-            const topic = (document.getElementById('wa-topic') as HTMLInputElement).value;
-            const message = (document.getElementById('wa-message') as HTMLTextAreaElement).value;
-            const phoneNumber = '6285707109853'; 
-            const text = `Halo Fatih, saya ${name}.\n\nSaya mau ngobrolin soal: *${topic}*\n\n${message}`;
-            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
-          });
-        }
       });
     </script>
   </body>
