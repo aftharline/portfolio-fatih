@@ -1,0 +1,228 @@
+---
+export const prerender = false; // <--- Tambahkan ini
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+---
+
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Portfolio</title>
+    <ClientRouter />
+  </head>
+  <body class="bg-zinc-950 text-white font-sans p-6 md:p-12 min-h-[100svh]">
+
+<div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
+      
+      <div class="lg:col-span-1 h-fit lg:sticky lg:top-12 bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+  <h1 id="form-title" class="text-2xl font-bold tracking-tight">Tambah Project</h1>
+  <button type="button" id="logout-btn" class="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+    Logout
+  </button>
+</div>
+        
+        <form id="admin-form" class="space-y-5">
+          <input type="hidden" id="project-id" value="" />
+          <div id="old-urls-container" class="hidden"></div> 
+
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-1.5">Judul Project</label>
+            <input type="text" id="title" required class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white transition" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-1.5">Kategori</label>
+            <select id="category-select" class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white transition mb-2">
+              <option value="">Pilih Kategori Eksisting</option>
+            </select>
+            <input type="text" id="category-input" placeholder="Atau ketik kategori baru di sini..." class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white transition" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-1.5">Deskripsi</label>
+            <textarea id="description" rows="4" required class="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white transition resize-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-zinc-300 mb-1.5">Upload Gambar</label>
+            <input type="file" id="image-files" accept="image/*" multiple class="w-full text-sm text-zinc-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white file:text-black hover:file:bg-zinc-200 transition" />
+            <p id="file-hint" class="text-xs text-zinc-500 mt-2">*Bisa pilih lebih dari 1 foto.</p>
+          </div>
+
+          <div class="flex gap-2">
+            <button type="submit" id="submit-btn" class="flex-1 bg-white text-black font-semibold text-sm py-3.5 rounded-xl hover:bg-zinc-200 transition disabled:opacity-50">Publish</button>
+            <button type="button" id="cancel-btn" class="hidden px-4 bg-red-500/10 text-red-500 font-semibold text-sm rounded-xl hover:bg-red-500/20 transition">Batal</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="lg:col-span-2">
+        <h2 class="text-xl font-bold mb-6 border-b border-white/10 pb-4">Daftar Project Saat Ini</h2>
+        <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p class="text-zinc-500 text-sm">Memuat data...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      import { createClient } from '@supabase/supabase-js';
+      const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+
+      const form = document.getElementById('admin-form') as HTMLFormElement;
+      const titleInput = document.getElementById('title') as HTMLInputElement;
+      const descInput = document.getElementById('description') as HTMLTextAreaElement;
+      const categorySelect = document.getElementById('category-select') as HTMLSelectElement;
+      const categoryInput = document.getElementById('category-input') as HTMLInputElement;
+      const fileInput = document.getElementById('image-files') as HTMLInputElement;
+      const idInput = document.getElementById('project-id') as HTMLInputElement;
+      const oldUrlsContainer = document.getElementById('old-urls-container') as HTMLDivElement;
+      const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+      const formTitle = document.getElementById('form-title') as HTMLHeadingElement;
+      const fileHint = document.getElementById('file-hint') as HTMLParagraphElement;
+      const listContainer = document.getElementById('project-list') as HTMLDivElement;
+      const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
+
+      // CEK LOGIN LANGSUNG DI BROWSER
+  async function checkAuth() {
+    // 1. Cek session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // 2. Kalau nggak ada session, langsung lempar ke login
+    if (!session) {
+      window.location.href = '/login'; 
+    } else {
+      // 3. Kalau ada session, baru jalankan fungsi load data lo
+      console.log("User terautentikasi, memuat data...");
+      loadProjects(); 
+    }
+  }
+
+  // Jalankan pengecekan saat halaman dibuka
+  checkAuth();
+
+      async function loadProjects() {
+        const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+        if (error) { listContainer.innerHTML = '<p class="text-red-500">Gagal memuat data.</p>'; return; }
+
+        // --- LOGOUT SYSTEM ---
+      logoutBtn.addEventListener('click', async () => {
+        // Kasih konfirmasi biar nggak kepencet gak sengaja
+        if (!confirm('Yakin mau keluar dari halaman admin, bro?')) return;
+        
+        // Hapus session dari Supabase
+        const { error } = await supabase.auth.signOut();
+        
+        if (error) {
+          alert('Gagal logout: ' + error.message);
+        } else {
+          // Tendang balik ke halaman utama atau halaman login
+          window.location.href = '/login';
+        }
+      });
+
+        // Populate Category Dropdown
+        const uniqueCategories = [...new Set(data.map((p: any) => p.category).filter(Boolean))];
+        categorySelect.innerHTML = '<option value="">Pilih Kategori Eksisting</option>';
+        uniqueCategories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat as string;
+          opt.textContent = cat as string;
+          categorySelect.appendChild(opt);
+        });
+
+        listContainer.innerHTML = data.length === 0 ? '<p class="text-zinc-500 text-sm">Belum ada project.</p>' : '';
+        data.forEach((item: any) => {
+          const images = item.image_urls || [];
+          const card = document.createElement('div');
+          card.className = 'bg-zinc-900 border border-white/10 rounded-xl p-4 flex flex-col justify-between';
+          card.innerHTML = `
+            <div>
+              <img src="${images[0] || ''}" class="w-full h-40 object-cover rounded-lg mb-4 bg-zinc-800" />
+              <h3 class="font-bold text-lg mb-1 truncate">${item.title}</h3>
+              <span class="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full">${item.category || 'Uncategorized'}</span>
+            </div>
+            <div class="flex gap-2 border-t border-white/10 pt-4 mt-auto">
+              <button class="edit-btn flex-1 bg-zinc-800 hover:bg-zinc-700 text-sm py-2 rounded-lg transition" data-id="${item.id}" data-title="${item.title}" data-desc="${item.description}" data-cat="${item.category}" data-imgs='${JSON.stringify(images)}'>Edit</button>
+              <button class="delete-btn flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm py-2 rounded-lg transition" data-id="${item.id}" data-imgs='${JSON.stringify(images)}'>Hapus</button>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+        attachEventListeners();
+      }
+
+      function attachEventListeners() {
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            const t = e.target as HTMLButtonElement;
+            deleteProject(t.dataset.id!, JSON.parse(t.dataset.imgs!));
+        }));
+        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', (e) => {
+            const t = e.target as HTMLButtonElement;
+            setUpdateMode(t.dataset.id!, t.dataset.title!, t.dataset.desc!, t.dataset.cat!, JSON.parse(t.dataset.imgs!));
+        }));
+      }
+
+      async function deleteProject(id: string, imageUrls: string[]) {
+        if (!confirm('Hapus?')) return;
+        for (const url of imageUrls) {
+            const fileName = url.split('/').pop();
+            if (fileName) await supabase.storage.from('portfolio-images').remove([fileName]);
+        }
+        await supabase.from('projects').delete().eq('id', id);
+        loadProjects();
+      }
+
+      function setUpdateMode(id: string, title: string, desc: string, cat: string, imgs: string[]) {
+        idInput.value = id; titleInput.value = title; descInput.value = desc;
+        categorySelect.value = cat; categoryInput.value = '';
+        oldUrlsContainer.innerHTML = imgs.map(url => `<input type="hidden" class="old-url" value="${url}" />`).join('');
+        formTitle.innerText = 'Edit Project'; submitBtn.innerText = 'Simpan'; cancelBtn.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      cancelBtn.addEventListener('click', () => {
+        form.reset(); idInput.value = ''; oldUrlsContainer.innerHTML = '';
+        formTitle.innerText = 'Tambah Project'; submitBtn.innerText = 'Publish'; cancelBtn.classList.add('hidden');
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        const category = categoryInput.value || categorySelect.value;
+        const isUpdate = idInput.value !== '';
+        
+        try {
+          let finalUrls: string[] = [];
+          if (isUpdate) document.querySelectorAll('.old-url').forEach((el: any) => finalUrls.push(el.value));
+
+          if (fileInput.files && fileInput.files.length > 0) {
+            const newUrls: string[] = [];
+            for (let i = 0; i < fileInput.files.length; i++) {
+              const file = fileInput.files[i];
+              const fileName = `${Date.now()}-${i}.${file.name.split('.').pop()}`;
+              await supabase.storage.from('portfolio-images').upload(fileName, file);
+              const { data } = supabase.storage.from('portfolio-images').getPublicUrl(fileName);
+              newUrls.push(data.publicUrl);
+            }
+            if (isUpdate) {
+              for (const url of finalUrls) {
+                const name = url.split('/').pop();
+                if (name) await supabase.storage.from('portfolio-images').remove([name]);
+              }
+            }
+            finalUrls = newUrls;
+          } else if (!isUpdate) throw new Error('Pilih gambar!');
+
+          if (isUpdate) await supabase.from('projects').update({ title: titleInput.value, description: descInput.value, category, image_urls: finalUrls }).eq('id', idInput.value);
+          else await supabase.from('projects').insert([{ title: titleInput.value, description: descInput.value, category, image_urls: finalUrls }]);
+
+          form.reset(); cancelBtn.click(); loadProjects();
+        } catch (err: any) { alert(err.message); } finally { submitBtn.disabled = false; }
+      });
+      loadProjects();
+    </script>
+  </body>
+</html>

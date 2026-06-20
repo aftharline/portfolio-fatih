@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Optimasi font tingkat dewa biar setajam silet */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: #09090b; /* zinc-950 */
+    color: #fafafa; /* zinc-50 */
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    overflow-x: hidden;
+    /* Mencegah layout bergeser aneh saat loading */
+    overscroll-behavior: none; 
+  }
+
+  /* --- Kustomisasi Scrollbar Premium --- */
+  ::-webkit-scrollbar {
+    width: 6px; /* Dibikin lebih tipis & elegan */
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent; 
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1); 
+    border-radius: 9999px;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3); 
+  }
+
+  /* --- Efek Seleksi Teks (Selection) --- */
+  ::selection {
+    background-color: #fafafa;
+    color: #09090b; /* Invert color pas di-block, kelihatan mahal */
+  }
+}
+
+@layer utilities {
+  /* --- Efek Backdrop Glassmorphism Apple-style --- */
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    /* Inset shadow ngasih ilusi ketebalan kaca */
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-panel-hover {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, box-shadow, background;
+  }
+
+  .glass-panel-hover:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* --- Text Gradient Premium --- */
+  .text-gradient {
+    background: linear-gradient(to right, #ffffff 0%, #a1a1aa 50%, #52525b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* --- Animated Shimmer Text (Opsi tambahan kalau mau teks bercahaya jalan) --- */
+  .text-shimmer {
+    background: linear-gradient(90deg, #52525b 0%, #ffffff 50%, #52525b 100%);
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 4s linear infinite;
+  }
+
+  /* --- Hardware Acceleration Force (Biar animasi 60fps anti patah-patah) --- */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}
+
+/* --- ANIMASI KUSTOM --- */
+
+/* 1. Shimmer Text Keyframes */
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* 2. Audio Player Breathing Effect (Lebih elegan dari pulse bawaan) */
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.1);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: gentle-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* --- Kelancaran Transisi Halaman (Astro View Transitions) --- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-new(root) {
+  animation-name: revealPage;
+}
+
+@keyframes revealPage {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
