@@ -106,12 +106,28 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       #mouse-glow {
         will-change: transform;
       }
+
+      /* Biar tombol-tombol responsif di HP */
+  button, .project-image {
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  
+  /* Pastikan elemen overlay nggak ngalangin klik */
+  .fixed, .absolute {
+    pointer-events: none;
+  }
+  
+  /* TAPI, elemen-elemen ini harus tetap bisa diklik! */
+  button, a, .project-image, #close-lightbox, #prev-btn, #next-btn, #music-toggle {
+    pointer-events: auto !important;
+  }
     </style>
   </head>
   <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
     
     <!-- INTERACTIVE BACKGROUND GRID -->
-<div class="fixed inset-0 -z-50 bg-[#09090b]">
+<div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none">
       
       <div class="hidden md:block absolute inset-0 opacity-[0.08]" 
            style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem;">
@@ -336,7 +352,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
     </audio>
 
-    <button id="music-toggle" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[90] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/70 p-4 rounded-full shadow-2xl hover:bg-white hover:text-black hover:scale-110 transition-all duration-300 flex items-center justify-center group" aria-label="Toggle Music">
+    <button id="music-toggle" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/70 p-4 rounded-full shadow-2xl hover:bg-white hover:text-black hover:scale-110 transition-all duration-300 flex items-center justify-center group" aria-label="Toggle Music">
       <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block">
         <polygon points="5 3 19 12 5 21 5 3"></polygon>
       </svg>
