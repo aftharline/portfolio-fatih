@@ -26,116 +26,500 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
 <html lang="id" class="scroll-smooth">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Fatih | Complete Portfolio</title>
     <meta name="description" content="Eksplorasi karya dan proses Fatih." />
-    
+
+    <!-- Performance hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://prod.spline.design" />
+
     <meta property="og:title" content="Fatih | Complete Portfolio" />
     <meta property="og:description" content="Eksplorasi karya dan proses." />
     <meta property="og:image" content={ogImage} />
     <meta property="og:type" content="website" />
-    
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="Fatih | Complete Portfolio" />
     <meta property="twitter:description" content="Eksplorasi karya dan proses." />
     <meta property="twitter:image" content={ogImage} />
     <ClientRouter />
-    
+
     <style>
-      /* --- MARQUEE --- */
+      /* ============================================================
+         PERFORMANCE: containment + GPU layer promotion
+      ============================================================ */
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html {
+        scroll-behavior: smooth;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      /* Prevent layout thrash on mobile */
+      body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* ============================================================
+         SCROLLBAR STYLING
+      ============================================================ */
+      ::-webkit-scrollbar { width: 2px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+      /* ============================================================
+         PROGRESS BAR (scroll indicator)
+      ============================================================ */
+      #scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+        z-index: 9999;
+        transform-origin: left;
+        will-change: width;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+
+      /* ============================================================
+         MARQUEE — performant (transform only, no layout)
+      ============================================================ */
       @keyframes marquee {
-        0% { transform: translateX(0%); }
-        100% { transform: translateX(-50%); }
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
       }
       .animate-marquee {
         display: flex;
         width: max-content;
-        animation: marquee 25s linear infinite;
+        animation: marquee 35s linear infinite;
+        will-change: transform;
       }
-      
-      .text-outline {
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.15);
-      }
-      
-      .project-section {
-        height: calc(var(--img-count) * 100svh);
+      @media (prefers-reduced-motion: reduce) {
+        .animate-marquee { animation: none; }
       }
 
-      /* --- CINEMATIC REVEAL ANIMATIONS --- */
+      /* ============================================================
+         TYPOGRAPHY
+      ============================================================ */
+      .text-outline {
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12);
+        paint-order: stroke fill;
+      }
+
+      /* ============================================================
+         PROJECT SECTION — CSS custom-property-driven
+      ============================================================ */
+      .project-section {
+        height: calc(var(--img-count) * 100svh);
+        contain: layout style;
+      }
+
+      /* ============================================================
+         REVEAL ANIMATIONS — composited only (opacity + transform)
+         NO filter: blur() — kills mobile GPU perf
+      ============================================================ */
       .reveal-up {
         opacity: 0;
-        transform: translateY(40px);
-        filter: blur(10px);
-        transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: transform, opacity, filter;
+        transform: translateY(32px);
+        transition:
+          opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, opacity;
       }
       .reveal-up.in-view {
         opacity: 1;
         transform: translateY(0);
-        filter: blur(0px);
       }
-      
+
+      /* Char-by-char split animation */
+      .split-char {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(24px) rotateX(-20deg);
+        transition:
+          opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+      }
+      .split-char.in-view {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg);
+      }
+
+      .delay-50  { transition-delay: 50ms; }
       .delay-100 { transition-delay: 100ms; }
+      .delay-150 { transition-delay: 150ms; }
       .delay-200 { transition-delay: 200ms; }
       .delay-300 { transition-delay: 300ms; }
       .delay-400 { transition-delay: 400ms; }
 
-      /* --- PREMIUM IMAGE HOVER --- */
+      /* ============================================================
+         IMAGE HOVER — composited only
+      ============================================================ */
       .img-premium {
-        filter: grayscale(100%) brightness(0.7);
-        transform: scale(1);
-        transition: filter 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: filter, transform;
+        transform: scale(1.02);
+        transition:
+          transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+          filter 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, filter;
+        backface-visibility: hidden;
       }
-      
-      @media (min-width: 768px) {
+
+      /* Desktop: grayscale default, color on hover */
+      @media (min-width: 768px) and (hover: hover) {
+        .img-premium {
+          filter: grayscale(100%) brightness(0.65) contrast(1.1);
+          transform: scale(1);
+        }
         .img-container:hover .img-premium {
           filter: grayscale(0%) brightness(1);
-          transform: scale(1.03);
-        }
-      }
-      /* Di Mobile, tampil warna full */
-      @media (max-width: 767px) {
-        .img-premium {
-          filter: grayscale(0%) brightness(0.9);
+          transform: scale(1.04);
         }
       }
 
-      /* Responsif di HP */
-      button, .project-image {
-        touch-action: manipulation;
+      /* Mobile / touch: always color, slight dim */
+      @media (max-width: 767px), (hover: none) {
+        .img-premium {
+          filter: grayscale(0%) brightness(0.85);
+          transform: scale(1);
+        }
+      }
+
+      /* ============================================================
+         PROJECT INDEX COUNTER — sliding number animation
+      ============================================================ */
+      .project-counter {
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
+      }
+
+      /* ============================================================
+         SECTION PROGRESS DOT NAV (desktop side)
+      ============================================================ */
+      #dot-nav {
+        position: fixed;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 60;
+        pointer-events: none;
+      }
+      @media (max-width: 767px) { #dot-nav { display: none; } }
+
+      .dot-nav-item {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
         cursor: pointer;
       }
+      .dot-nav-item.active {
+        background: rgba(255,255,255,0.9);
+        height: 20px;
+        border-radius: 3px;
+      }
 
-      #mouse-glow {
+      /* ============================================================
+         IMAGE PARALLAX wrapper
+      ============================================================ */
+      .parallax-img-wrapper {
+        position: absolute;
+        inset: -8%;
+        width: 116%;
+        height: 116%;
         will-change: transform;
+      }
+
+      .parallax-img-wrapper .img-premium {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      @media (max-width: 767px) {
+        .parallax-img-wrapper {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      /* ============================================================
+         CROSSHAIR (desktop only) — composited
+      ============================================================ */
+      #crosshair-h,
+      #crosshair-v {
+        position: fixed;
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.5s;
+        will-change: transform;
+      }
+      #crosshair-h {
+        left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+      }
+      #crosshair-v {
+        top: 0; bottom: 0;
+        width: 1px;
+        background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+      }
+      #cursor-coords {
+        position: fixed;
+        pointer-events: none;
+        z-index: 10;
+        font-family: 'Courier New', monospace;
+        font-size: 9px;
+        color: rgba(255,255,255,0.3);
+        opacity: 0;
+        transition: opacity 0.3s;
+        letter-spacing: 0.1em;
+        will-change: transform;
+      }
+
+      /* ============================================================
+         STICKY TEXT PANEL fade helper
+      ============================================================ */
+      .text-panel-fade {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 40%;
+        background: linear-gradient(to top, rgba(9,9,11,0.95) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      /* ============================================================
+         NAV FILTER — pill morph
+      ============================================================ */
+      .filter-btn {
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .filter-btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.05);
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: inherit;
+      }
+      .filter-btn:hover::after { opacity: 1; }
+
+      /* ============================================================
+         SECTION ENTRANCE — slide from right (images)
+      ============================================================ */
+      .reveal-right {
+        opacity: 0;
+        transform: translateX(40px);
+        transition:
+          opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, opacity;
+      }
+      .reveal-right.in-view {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* ============================================================
+         HORIZONTAL RULE DRAW
+      ============================================================ */
+      .line-draw {
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
+      }
+      .line-draw.in-view { transform: scaleX(1); }
+
+      /* ============================================================
+         CONTACT SECTION
+      ============================================================ */
+      .glass-input {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        font-size: 0.875rem;
+        color: white;
+        width: 100%;
+        outline: none;
+        transition:
+          border-color 0.3s,
+          background 0.3s,
+          box-shadow 0.3s;
+        -webkit-appearance: none;
+      }
+      .glass-input::placeholder { color: rgba(255,255,255,0.25); }
+      .glass-input:focus {
+        border-color: rgba(255,255,255,0.4);
+        background: rgba(255,255,255,0.07);
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.05);
+      }
+
+      .btn-submit {
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: white;
+        color: black;
+        font-weight: 700;
+        font-size: 0.875rem;
+        padding: 1rem;
+        border-radius: 12px;
+        width: 100%;
+        transition:
+          background 0.3s,
+          transform 0.2s,
+          box-shadow 0.3s;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-submit:hover {
+        background: #e5e5e5;
+        box-shadow: 0 0 32px rgba(255,255,255,0.25);
+      }
+      .btn-submit:active { transform: scale(0.98); }
+      .btn-submit::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+      }
+      .btn-submit:hover::before { transform: translateX(100%); }
+
+      /* ============================================================
+         LIGHTBOX
+      ============================================================ */
+      #lightbox {
+        contain: layout style;
+      }
+      .lightbox-bg {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.96);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+
+      /* ============================================================
+         MUSIC TOGGLE
+      ============================================================ */
+      #music-toggle {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          color 0.3s,
+          transform 0.2s,
+          box-shadow 0.3s;
+      }
+      #music-toggle:active { transform: scale(0.9); }
+
+      /* ============================================================
+         FOOTER
+      ============================================================ */
+      footer a {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        color: rgba(200,200,200,0.7);
+        transition: color 0.2s;
+      }
+      footer a:hover { color: white; }
+
+      /* ============================================================
+         MOBILE TOUCH — remove 300ms delay everywhere
+      ============================================================ */
+      a, button, [role="button"] {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* ============================================================
+         SAFE AREA padding (notch/home bar)
+      ============================================================ */
+      @supports (padding: env(safe-area-inset-bottom)) {
+        #music-toggle {
+          bottom: calc(1.5rem + env(safe-area-inset-bottom));
+        }
+        nav#filter-nav {
+          padding-left: max(1.5rem, env(safe-area-inset-left));
+          padding-right: max(1.5rem, env(safe-area-inset-right));
+        }
+      }
+
+      /* ============================================================
+         LOADING SKELETON (optional pero nice)
+      ============================================================ */
+      @keyframes shimmer {
+        from { background-position: -200% 0; }
+        to   { background-position:  200% 0; }
       }
     </style>
   </head>
+
   <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
-    
-    <!-- INTERACTIVE BACKGROUND GRID -->
-    <div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none">
-      
-      <div class="hidden md:block absolute inset-0 opacity-[0.08]" 
-           style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem;">
-      </div>
-      
-      <div class="hidden md:block absolute inset-0 z-0 opacity-[0.04] [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]">
-        <Boxes client:load />
+
+    <!-- SCROLL PROGRESS -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- DOT NAV (desktop sidebar) -->
+    <nav id="dot-nav" aria-hidden="true">
+      {projects && projects.map((_, i) => (
+        <div class="dot-nav-item" data-dot={i} title={`Project ${i + 1}`}></div>
+      ))}
+    </nav>
+
+    <!-- ============================================================
+         BACKGROUND — isolated layer, no repaints below
+    ============================================================ -->
+    <div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none" aria-hidden="true">
+
+      <!-- Grid: desktop only, lightweight -->
+      <div class="hidden md:block absolute inset-0 opacity-[0.05]"
+           style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem; contain: strict;">
       </div>
 
-      <div id="crosshair-h" class="hidden md:block fixed left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none z-10 opacity-0 transition-opacity duration-500"></div>
-      <div id="crosshair-v" class="hidden md:block fixed top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent pointer-events-none z-10 opacity-0 transition-opacity duration-500"></div>
-      <div id="cursor-coords" class="hidden md:block fixed pointer-events-none z-10 font-mono text-[9px] text-zinc-500 opacity-0 tracking-widest transition-opacity duration-300"></div>
+      <!-- Boxes: hidden on mobile entirely (too heavy) -->
+      <div class="hidden md:block absolute inset-0 z-0 opacity-[0.03] [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]">
+        <Boxes client:idle />
+      </div>
 
+      <!-- Crosshair -->
+      <div id="crosshair-h" class="hidden md:block"></div>
+      <div id="crosshair-v" class="hidden md:block"></div>
+      <div id="cursor-coords" class="hidden md:block"></div>
     </div>
 
-    <div class="fixed inset-0 -z-50 bg-zinc-950/70 overflow-hidden pointer-events-none"></div>
+    <!-- Subtle dark veil -->
+    <div class="fixed inset-0 -z-40 bg-zinc-950/60 pointer-events-none" aria-hidden="true"></div>
 
+    <!-- ============================================================
+         HERO
+    ============================================================ -->
     <div class="relative z-10 w-full mb-12 border-b border-white/5">
-      <PixelHero 
+      <PixelHero
         client:load
         word1="Muhammad"
         word2="Fatih."
@@ -145,38 +529,40 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         secondaryCta="Mari Berkolaborasi"
         secondaryCtaMobile="Kontak"
         onPrimaryClick={() => {
-            const el = document.getElementById('projects-container');
-            if (el) {
-                const yOffset = -20;
-                const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                window.scrollTo({ top: y, behavior: 'smooth' });
-            }
+          const el = document.getElementById('projects-container');
+          if (el) {
+            const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
         }}
         githubUrl="#wa-form"
       />
     </div>
 
-    <!-- TYPOGRAPHY MARQUEE SECTION -->
-    <div class="w-full overflow-hidden border-y border-white/5 py-6 md:py-8 z-20 backdrop-blur-sm bg-zinc-950/40 relative">
-      <div class="absolute inset-y-0 left-0 w-20 md:w-40 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none"></div>
-      <div class="absolute inset-y-0 right-0 w-20 md:w-40 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none"></div>
-      
+    <!-- ============================================================
+         MARQUEE
+    ============================================================ -->
+    <div class="w-full overflow-hidden border-y border-white/5 py-5 md:py-7 z-20 relative" aria-hidden="true">
+      <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none"></div>
+      <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none"></div>
       <div class="animate-marquee">
-        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap">
+        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none">
           INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;
         </span>
-        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap">
+        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none" aria-hidden="true">
           INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;
         </span>
       </div>
     </div>
 
-    <!-- NAVIGATION FILTER -->
-    <nav id="filter-nav" class="sticky top-0 z-50 py-5 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 flex justify-center gap-3 overflow-x-auto px-6 reveal-up">
+    <!-- ============================================================
+         FILTER NAV
+    ============================================================ -->
+    <nav id="filter-nav" class="sticky top-0 z-50 py-4 bg-zinc-950/85 backdrop-blur-2xl border-b border-white/5 flex justify-start md:justify-center gap-2 overflow-x-auto px-6 reveal-up no-scrollbar">
       {categories.map((cat) => (
-        <button 
+        <button
           data-filter={cat}
-          class="filter-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold tracking-wide transition-all border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white shadow-lg"
+          class="filter-btn flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase transition-all border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white"
           data-active={cat === 'All'}
         >
           {cat}
@@ -184,95 +570,152 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       ))}
     </nav>
 
-    <!-- MAIN PROJECTS CONTAINER -->
+    <!-- ============================================================
+         PROJECTS
+    ============================================================ -->
     <main class="relative w-full" id="projects-container">
       {projects && projects.map((project, index) => {
         const images = project.image_urls || [''];
         return (
-          <section 
-            class="project-section relative w-full flex flex-col md:flex-row border-b border-white/5 img-container" 
-            data-category={project.category} 
+          <section
+            class="project-section relative w-full flex flex-col md:flex-row border-b border-white/5 img-container"
+            data-category={project.category}
+            data-project-index={index}
             style={`--img-count: ${images.length}; z-index: ${index + 10};`}
           >
-            
-            <!-- LEFT: TEXT CONTENT -->
-            <div class="w-full md:w-1/2 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-24 md:p-16 z-30 pointer-events-none md:bg-transparent md:border-b-0 md:order-1 relative">
-              
-              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent md:hidden -z-10"></div>
-              
-              <div class="w-full max-w-lg pointer-events-auto relative z-10">
-                <span class="inline-block px-3 py-1 bg-white/10 border border-white/10 rounded-full text-zinc-300 font-mono text-[10px] md:text-xs tracking-widest uppercase mb-4 md:mb-6 reveal-up">
-                  Project 0{index + 1}
-                </span>
-                <h2 class="text-4xl md:text-6xl font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-xl md:drop-shadow-none reveal-up delay-100">
+
+            <!-- ── LEFT: STICKY TEXT PANEL ─────────────────────── -->
+            <div class="w-full md:w-5/12 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-28 md:p-16 z-30 pointer-events-none md:order-1">
+
+              <!-- Mobile gradient overlay -->
+              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/98 via-zinc-950/60 to-transparent md:hidden -z-10" aria-hidden="true"></div>
+
+              <div class="w-full max-w-lg pointer-events-auto relative">
+
+                <!-- Project number + line -->
+                <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
+                  <span class="project-counter font-mono text-[10px] md:text-xs text-zinc-600 tracking-[0.3em] uppercase">
+                    0{index + 1}
+                  </span>
+                  <div class="flex-1 h-px bg-white/10 line-draw max-w-[60px]"></div>
+                  {project.category && (
+                    <span class="px-2.5 py-0.5 bg-white/5 border border-white/8 rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">
+                      {project.category}
+                    </span>
+                  )}
+                </div>
+
+                <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white project-title reveal-up delay-100">
                   {project.title}
                 </h2>
-                <p class="text-zinc-300 md:text-zinc-400 text-sm md:text-lg leading-relaxed font-light drop-shadow-md md:drop-shadow-none reveal-up delay-200">
+
+                <p class="text-zinc-400 text-sm md:text-base leading-relaxed font-light reveal-up delay-200 max-w-md">
                   {project.description}
                 </p>
-                {project.category && (
-                  <div class="mt-6 md:mt-8 text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-widest drop-shadow-md md:drop-shadow-none reveal-up delay-300">
-                    Kategori: <span class="text-zinc-200">{project.category}</span>
+
+                <!-- Image count pill -->
+                <div class="mt-6 flex items-center gap-2 reveal-up delay-300">
+                  <div class="flex gap-1">
+                    {images.map((_: string, dotI: number) => (
+                      <div class={`w-1 h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20'}`}></div>
+                    ))}
                   </div>
-                )}
+                  <span class="text-[10px] font-mono text-zinc-600 tracking-widest">{images.length} FOTO</span>
+                </div>
               </div>
             </div>
 
-            <!-- RIGHT: IMAGE STACKING CONTAINER -->
-            <div class="absolute inset-0 md:relative w-full md:w-1/2 z-10 md:order-2 bg-zinc-950">
+            <!-- ── RIGHT: IMAGE STACK ─────────────────────────── -->
+            <div class="absolute inset-0 md:relative w-full md:w-7/12 z-10 md:order-2">
               {images.map((url: string, imgIndex: number) => (
-                <div class="h-[100svh] w-full sticky top-0 overflow-hidden md:shadow-[0_-20px_50px_rgba(0,0,0,0.5)] border-b border-white/5 md:border-none">
-                  <img 
-                    src={url} 
-                    alt={`${project.title} - view ${imgIndex + 1}`} 
-                    class="project-image img-premium w-full h-full object-cover cursor-zoom-in"
-                    data-images={JSON.stringify(images)}
-                    data-index={imgIndex}
-                  />
+                <div class="h-[100svh] w-full sticky top-0 overflow-hidden">
+                  <!-- Vignette overlay for depth -->
+                  <div class="absolute inset-0 z-10 pointer-events-none"
+                       style="background: radial-gradient(ellipse at center, transparent 40%, rgba(9,9,11,0.4) 100%)"
+                       aria-hidden="true">
+                  </div>
+
+                  <div class="parallax-img-wrapper" data-parallax>
+                    <img
+                      src={url}
+                      alt={`${project.title} - foto ${imgIndex + 1}`}
+                      class="project-image img-premium w-full h-full object-cover cursor-zoom-in"
+                      data-images={JSON.stringify(images)}
+                      data-index={imgIndex}
+                      loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
-            
+
           </section>
         );
       })}
     </main>
 
-    <!-- CONTACT SECTION -->
-    <section class="min-h-[80svh] flex flex-col justify-center p-8 md:p-12 bg-zinc-950/60 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
-      <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-8">
-        
+    <!-- ============================================================
+         CONTACT SECTION
+    ============================================================ -->
+    <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
+
+      <!-- Ambient glow -->
+      <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+
+      <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
+
         <div class="w-full md:w-1/2 text-left z-10">
-          <h2 class="text-5xl md:text-6xl font-bold mb-6 reveal-up">Mari Berkolaborasi.</h2>
-          <p class="text-zinc-400 mb-10 text-lg md:text-xl font-light reveal-up delay-100 max-w-lg">
+          <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-600 mb-4 reveal-up">Kolaborasi</p>
+          <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
+          <div class="w-16 h-px bg-white/20 mb-8 line-draw"></div>
+          <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">
             Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.
           </p>
-          
-          <form id="wa-form" class="space-y-5 w-full max-w-lg reveal-up delay-200">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label class="block text-xs font-semibold text-zinc-500 mb-2 ml-1 uppercase tracking-wider">Nama / Instansi</label>
-                <input type="text" id="wa-name" placeholder="Misal: Budi / Duta Remaja" required class="w-full bg-zinc-900/60 border border-white/10 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-zinc-800 transition-all glass-panel-hover" />
+
+          <form id="wa-form" class="space-y-4 w-full max-w-lg reveal-up delay-150" novalidate>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-name">Nama / Instansi</label>
+                <input
+                  type="text" id="wa-name"
+                  placeholder="Misal: Budi / Duta Remaja"
+                  required
+                  autocomplete="name"
+                  class="glass-input"
+                />
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-zinc-500 mb-2 ml-1 uppercase tracking-wider">Topik Diskusi</label>
-                <input type="text" id="wa-topic" placeholder="Misal: Desain / Project Kampus" required class="w-full bg-zinc-900/60 border border-white/10 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-zinc-800 transition-all glass-panel-hover" />
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-topic">Topik Diskusi</label>
+                <input
+                  type="text" id="wa-topic"
+                  placeholder="Misal: Desain / Project Kampus"
+                  required
+                  class="glass-input"
+                />
               </div>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-zinc-500 mb-2 ml-1 uppercase tracking-wider">Pesan</label>
-              <textarea id="wa-message" rows="4" placeholder="Ceritakan detail idenya di sini..." required class="w-full bg-zinc-900/60 border border-white/10 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-zinc-800 transition-all resize-none glass-panel-hover"></textarea>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-message">Pesan</label>
+              <textarea
+                id="wa-message" rows="4"
+                placeholder="Ceritakan detail idenya di sini..."
+                required
+                class="glass-input resize-none"
+              ></textarea>
             </div>
-            <button type="submit" class="w-full bg-white text-black font-bold text-sm py-4 mt-2 rounded-xl hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+            <button type="submit" class="btn-submit mt-2">
               Kirim Pesan via WhatsApp ↗
             </button>
           </form>
         </div>
 
+        <!-- Spline — load only when visible, desktop only -->
         <div class="hidden md:flex w-full md:w-1/2 h-[550px] md:h-[650px] relative items-end justify-center reveal-up delay-300">
-          <SplineScene 
+          <SplineScene
             client:visible
-            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode" 
+            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
             className="w-full h-full cursor-grab active:cursor-grabbing scale-[1.15] translate-y-6"
           />
         </div>
@@ -280,250 +723,352 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       </div>
     </section>
 
+    <!-- ============================================================
+         FOOTER
+    ============================================================ -->
     <footer class="py-10 bg-zinc-950 border-t border-white/5 text-center relative z-50">
-      <p class="text-zinc-500 text-sm font-medium tracking-wide">© 2026 <a style="text-decoration: underline; color: rgb(154, 154, 154);" href="https://www.instagram.com/aftharmuhammad_">Muhammad Abdee Nur Fatih</a>. All rights reserved.</p>
+      <p class="text-zinc-500 text-xs font-medium tracking-widest uppercase">
+        © 2026 <a href="https://www.instagram.com/aftharmuhammad_">Muhammad Abdee Nur Fatih</a>. All rights reserved.
+      </p>
     </footer>
 
-    <!-- MUSIC PLAYER -->
+    <!-- ============================================================
+         MUSIC PLAYER
+    ============================================================ -->
     <audio id="bg-music" loop preload="none">
       <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
     </audio>
 
-    <button id="music-toggle" class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/70 p-4 rounded-full shadow-2xl hover:bg-white hover:text-black hover:scale-110 transition-all duration-300 flex items-center justify-center group" aria-label="Toggle Music">
-      <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block">
+    <button
+      id="music-toggle"
+      class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/60 p-4 rounded-full shadow-2xl flex items-center justify-center"
+      aria-label="Toggle Music"
+    >
+      <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block">
         <polygon points="5 3 19 12 5 21 5 3"></polygon>
       </svg>
-      <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+      <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
         <rect x="6" y="4" width="4" height="16"></rect>
         <rect x="14" y="4" width="4" height="16"></rect>
       </svg>
     </button>
 
-    <!-- LIGHTBOX -->
-    <div id="lightbox" class="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[999] hidden flex-col items-center justify-center p-4 select-none">
-      <button id="close-lightbox" class="absolute top-6 right-6 text-white/50 hover:text-white text-5xl transition z-50 p-2 leading-none">&times;</button>
-      
-      <div class="absolute top-6 left-6 flex items-center bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-xl p-1 z-50">
-        <button id="zoom-out" class="text-white/70 hover:text-white px-4 py-2 text-lg font-bold transition hover:bg-zinc-800 rounded-lg">-</button>
-        <span id="zoom-indicator" class="text-xs font-mono px-3 text-zinc-400">100%</span>
-        <button id="zoom-in" class="text-white/70 hover:text-white px-4 py-2 text-lg font-bold transition hover:bg-zinc-800 rounded-lg">+</button>
-        <div class="w-px h-5 bg-white/10 mx-2"></div>
-        <button id="zoom-reset" class="text-xs font-semibold tracking-wide text-zinc-400 hover:text-white px-4 py-2 transition hover:bg-zinc-800 rounded-lg">RESET</button>
+    <!-- ============================================================
+         LIGHTBOX
+    ============================================================ -->
+    <div id="lightbox" class="fixed inset-0 z-[999] hidden items-center justify-center" role="dialog" aria-modal="true" aria-label="Image viewer">
+      <div class="lightbox-bg"></div>
+
+      <!-- Controls bar -->
+      <div class="absolute top-4 left-4 md:top-6 md:left-6 flex items-center bg-zinc-900/70 backdrop-blur-md border border-white/8 rounded-xl p-1 z-50 gap-1">
+        <button id="zoom-out" class="text-white/60 hover:text-white px-3 py-2 text-base font-bold transition hover:bg-zinc-800 rounded-lg active:scale-95" aria-label="Zoom out">−</button>
+        <span id="zoom-indicator" class="text-[10px] font-mono px-2 text-zinc-500 min-w-[40px] text-center">100%</span>
+        <button id="zoom-in" class="text-white/60 hover:text-white px-3 py-2 text-base font-bold transition hover:bg-zinc-800 rounded-lg active:scale-95" aria-label="Zoom in">+</button>
+        <div class="w-px h-4 bg-white/10 mx-1"></div>
+        <button id="zoom-reset" class="text-[10px] font-semibold tracking-wide text-zinc-500 hover:text-white px-3 py-2 transition hover:bg-zinc-800 rounded-lg" aria-label="Reset zoom">RESET</button>
       </div>
 
-      <div class="relative w-full h-full flex items-center justify-center overflow-auto p-4 max-w-[90vw] max-h-[85vh]">
-        <button id="prev-btn" class="absolute left-4 md:-left-16 bg-zinc-900/80 hover:bg-zinc-800 text-white text-2xl w-14 h-14 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md">&larr;</button>
+      <!-- Close -->
+      <button id="close-lightbox" class="absolute top-4 right-4 md:top-6 md:right-6 text-white/40 hover:text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition z-50 text-2xl" aria-label="Close">×</button>
+
+      <!-- Image area -->
+      <div class="relative w-full h-full flex items-center justify-center p-4 z-20">
+        <button id="prev-btn" class="absolute left-3 md:left-6 bg-zinc-900/80 hover:bg-zinc-800 text-white w-12 h-12 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md text-lg active:scale-95" aria-label="Previous image">←</button>
         <div id="img-zoom-wrapper" class="transition-transform duration-300 ease-out origin-center flex justify-center items-center">
-          <img id="lightbox-img" src="" alt="Popup Preview" class="max-w-full max-h-[80vh] md:max-h-[85vh] object-contain shadow-2xl rounded-sm" />
+          <img id="lightbox-img" src="" alt="Foto preview" class="max-w-full max-h-[80vh] md:max-h-[85vh] object-contain shadow-2xl rounded-sm select-none" draggable="false" />
         </div>
-        <button id="next-btn" class="absolute right-4 md:-right-16 bg-zinc-900/80 hover:bg-zinc-800 text-white text-2xl w-14 h-14 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md">&rarr;</button>
+        <button id="next-btn" class="absolute right-3 md:right-6 bg-zinc-900/80 hover:bg-zinc-800 text-white w-12 h-12 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md text-lg active:scale-95" aria-label="Next image">→</button>
       </div>
-      
-      <div id="lightbox-counter" class="text-zinc-400 text-sm font-mono tracking-widest mt-6 bg-zinc-900/60 border border-white/10 px-5 py-2 rounded-full backdrop-blur-md">
+
+      <div id="lightbox-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-zinc-400 text-xs font-mono tracking-widest bg-zinc-900/70 border border-white/8 px-4 py-2 rounded-full backdrop-blur-md z-50">
         1 / 1
       </div>
     </div>
 
+    <!-- ============================================================
+         SCRIPTS — split into modules for clarity
+    ============================================================ -->
     <script>
       document.addEventListener('astro:page-load', () => {
 
-        // ============================================================
-        // SECTION 1: SEMUA DEVICE (Mobile + Desktop)
-        // ============================================================
+        // ── Helpers ───────────────────────────────────────────────
+        const qs  = (s: string) => document.querySelector(s);
+        const qsa = (s: string) => document.querySelectorAll(s);
 
-        // --- INTERSECTION OBSERVER (ANIMASI TEKS SAAT SCROLL) ---
-        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('in-view');
-              observer.unobserve(entry.target);
-            }
+        const isMobile = () => window.innerWidth < 768;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // ── 1. SCROLL PROGRESS ────────────────────────────────────
+        const progressBar = qs('#scroll-progress') as HTMLElement;
+        if (progressBar) {
+          const updateProgress = () => {
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+            progressBar.style.width = `${pct}%`;
+          };
+          window.addEventListener('scroll', updateProgress, { passive: true });
+          updateProgress();
+        }
+
+        // ── 2. INTERSECTION OBSERVER — reveal-up + line-draw ──────
+        const revealObs = new IntersectionObserver(
+          (entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                revealObs.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -60px 0px', threshold: 0.1 }
+        );
+        qsa('.reveal-up, .reveal-right, .line-draw, .split-char').forEach(el => revealObs.observe(el));
+
+        // ── 3. DOT NAV ────────────────────────────────────────────
+        const dots     = qsa('.dot-nav-item');
+        const sections = qsa('.project-section');
+
+        if (dots.length && sections.length) {
+          // click to scroll
+          dots.forEach((dot, i) => {
+            dot.addEventListener('click', () => {
+              sections[i]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
           });
-        }, observerOptions);
-        document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
 
-        // --- FILTER SYSTEM ---
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const projectSections = document.querySelectorAll('.project-section');
-        filterButtons.forEach(btn => {
+          // active dot on scroll
+          const dotObs = new IntersectionObserver(
+            (entries) => {
+              entries.forEach(entry => {
+                const idx = parseInt((entry.target as HTMLElement).dataset.projectIndex || '0');
+                if (entry.isIntersecting) {
+                  dots.forEach(d => d.classList.remove('active'));
+                  dots[idx]?.classList.add('active');
+                }
+              });
+            },
+            { rootMargin: '-40% 0px -40% 0px', threshold: 0 }
+          );
+          sections.forEach(s => dotObs.observe(s));
+        }
+
+        // ── 4. FILTER SYSTEM ──────────────────────────────────────
+        const filterBtns = qsa('.filter-btn');
+        filterBtns.forEach(btn => {
           btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.setAttribute('data-active', 'false'));
+            filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
             btn.setAttribute('data-active', 'true');
             const filter = btn.getAttribute('data-filter');
-            projectSections.forEach(section => {
-              const element = section as HTMLElement;
-              const category = element.getAttribute('data-category');
-              element.style.display = (filter === 'All' || category === filter) ? 'flex' : 'none';
+            (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(section => {
+              const cat = section.getAttribute('data-category');
+              const visible = filter === 'All' || cat === filter;
+              section.style.display = visible ? 'flex' : 'none';
             });
           });
         });
 
-        // --- MUSIC PLAYER SYSTEM ---
-        const bgMusic = document.getElementById('bg-music') as HTMLAudioElement;
-        const musicToggle = document.getElementById('music-toggle');
-        const iconPlay = document.getElementById('music-icon-play');
-        const iconPause = document.getElementById('music-icon-pause');
+        // ── 5. PARALLAX (rAF-based, desktop only) ─────────────────
+        if (!isMobile() && !prefersReducedMotion) {
+          const parallaxEls = qsa('[data-parallax]') as NodeListOf<HTMLElement>;
+          let ticking = false;
+
+          const doParallax = () => {
+            parallaxEls.forEach(el => {
+              const rect = el.closest('.sticky')!.getBoundingClientRect();
+              const progress = -rect.top / window.innerHeight;
+              const y = progress * 30; // max 30px shift
+              el.style.transform = `translate3d(0, ${y}px, 0)`;
+            });
+            ticking = false;
+          };
+
+          window.addEventListener('scroll', () => {
+            if (!ticking) {
+              requestAnimationFrame(doParallax);
+              ticking = true;
+            }
+          }, { passive: true });
+        }
+
+        // ── 6. MUSIC PLAYER ───────────────────────────────────────
+        const bgMusic    = qs('#bg-music') as HTMLAudioElement;
+        const musicToggle = qs('#music-toggle') as HTMLButtonElement;
+        const iconPlay   = qs('#music-icon-play');
+        const iconPause  = qs('#music-icon-pause');
+
         if (musicToggle && bgMusic) {
-          bgMusic.volume = 0.3;
-          let isPlaying = false;
+          bgMusic.volume = 0.25;
+          let playing = false;
+
           musicToggle.addEventListener('click', () => {
-            if (isPlaying) {
+            if (playing) {
               bgMusic.pause();
               iconPause?.classList.add('hidden');
               iconPlay?.classList.remove('hidden');
-              musicToggle.classList.remove('animate-pulse-subtle', 'bg-white', 'text-black');
+              musicToggle.classList.remove('bg-white', 'text-black');
             } else {
-              bgMusic.play();
+              bgMusic.play().catch(() => {}); // ignore autoplay policy error
               iconPlay?.classList.add('hidden');
               iconPause?.classList.remove('hidden');
-              musicToggle.classList.add('animate-pulse-subtle', 'bg-white', 'text-black');
+              musicToggle.classList.add('bg-white', 'text-black');
             }
-            isPlaying = !isPlaying;
+            playing = !playing;
           });
         }
 
-        // --- LIGHTBOX SYSTEM ---
-        const lightbox = document.getElementById('lightbox');
+        // ── 7. LIGHTBOX ───────────────────────────────────────────
+        const lightbox = qs('#lightbox') as HTMLElement;
         if (lightbox) {
-          let currentImages: string[] = [];
-          let currentIndex = 0;
-          let zoomLevel = 1;
+          const lightboxImg  = qs('#lightbox-img') as HTMLImageElement;
+          const zoomWrapper  = qs('#img-zoom-wrapper') as HTMLElement;
+          const counter      = qs('#lightbox-counter') as HTMLElement;
+          const closeLbBtn   = qs('#close-lightbox') as HTMLButtonElement;
+          const prevBtn      = qs('#prev-btn') as HTMLButtonElement;
+          const nextBtn      = qs('#next-btn') as HTMLButtonElement;
+          const btnZIn       = qs('#zoom-in') as HTMLButtonElement;
+          const btnZOut      = qs('#zoom-out') as HTMLButtonElement;
+          const btnZReset    = qs('#zoom-reset') as HTMLButtonElement;
+          const zoomInd      = qs('#zoom-indicator') as HTMLElement;
 
-          const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
-          const imgZoomWrapper = document.getElementById('img-zoom-wrapper')!;
-          const closeBtn = document.getElementById('close-lightbox')!;
-          const prevBtn = document.getElementById('prev-btn')!;
-          const nextBtn = document.getElementById('next-btn')!;
-          const counter = document.getElementById('lightbox-counter')!;
-          const btnZoomIn = document.getElementById('zoom-in')!;
-          const btnZoomOut = document.getElementById('zoom-out')!;
-          const btnZoomReset = document.getElementById('zoom-reset')!;
-          const zoomIndicator = document.getElementById('zoom-indicator')!;
+          let imgs: string[] = [];
+          let idx = 0;
+          let zoom = 1;
 
-          function applyZoom() {
-            imgZoomWrapper.style.transform = `scale(${zoomLevel})`;
-            zoomIndicator.innerText = `${Math.round(zoomLevel * 100)}%`;
-          }
-          function resetZoom() { zoomLevel = 1; applyZoom(); }
+          const applyZoom = () => {
+            zoomWrapper.style.transform = `scale(${zoom})`;
+            zoomInd.textContent = `${Math.round(zoom * 100)}%`;
+          };
+          const resetZoom = () => { zoom = 1; applyZoom(); };
 
-          function updateLightboxContent() {
-            lightboxImg.src = currentImages[currentIndex];
-            counter.innerText = `${currentIndex + 1} / ${currentImages.length}`;
+          const setImg = () => {
+            lightboxImg.src = imgs[idx];
+            counter.textContent = `${idx + 1} / ${imgs.length}`;
             resetZoom();
-            prevBtn.classList.toggle('hidden', currentImages.length <= 1);
-            nextBtn.classList.toggle('hidden', currentImages.length <= 1);
-          }
+            const single = imgs.length <= 1;
+            prevBtn.classList.toggle('hidden', single);
+            nextBtn.classList.toggle('hidden', single);
+          };
 
-          function openLightbox() {
+          const open = () => {
             lightbox.classList.remove('hidden');
             lightbox.classList.add('flex');
             document.body.style.overflow = 'hidden';
-            updateLightboxContent();
-          }
+            setImg();
+            closeLbBtn.focus();
+          };
 
-          function closeLightbox() {
+          const close = () => {
             lightbox.classList.add('hidden');
             lightbox.classList.remove('flex');
             document.body.style.overflow = '';
             resetZoom();
-          }
+          };
 
-          document.querySelectorAll('.project-image').forEach(img => {
-            img.addEventListener('click', (e) => {
-              const target = e.target as HTMLImageElement;
-              currentImages = JSON.parse(target.dataset.images!);
-              currentIndex = parseInt(target.dataset.index!);
-              openLightbox();
-            });
+          // Delegate click to all .project-image (handles dynamic content)
+          document.getElementById('projects-container')?.addEventListener('click', e => {
+            const target = (e.target as HTMLElement).closest('.project-image') as HTMLImageElement | null;
+            if (!target) return;
+            imgs = JSON.parse(target.dataset.images!);
+            idx  = parseInt(target.dataset.index!);
+            open();
           });
 
-          nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIndex = (currentIndex + 1) % currentImages.length; updateLightboxContent(); });
-          prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length; updateLightboxContent(); });
-          closeBtn.addEventListener('click', closeLightbox);
-          lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox || (e.target as HTMLElement).classList.contains('relative')) closeLightbox();
+          nextBtn.addEventListener('click', e => { e.stopPropagation(); idx = (idx + 1) % imgs.length; setImg(); });
+          prevBtn.addEventListener('click', e => { e.stopPropagation(); idx = (idx - 1 + imgs.length) % imgs.length; setImg(); });
+          closeLbBtn.addEventListener('click', close);
+
+          // Close on backdrop click
+          lightbox.addEventListener('click', e => {
+            if (e.target === lightbox || (e.target as HTMLElement).classList.contains('lightbox-bg')) close();
           });
 
-          btnZoomIn.addEventListener('click', (e) => { e.stopPropagation(); if (zoomLevel < 3.5) { zoomLevel += 0.25; applyZoom(); } });
-          btnZoomOut.addEventListener('click', (e) => { e.stopPropagation(); if (zoomLevel > 0.5) { zoomLevel -= 0.25; applyZoom(); } });
-          btnZoomReset.addEventListener('click', (e) => { e.stopPropagation(); resetZoom(); });
+          // Zoom controls
+          btnZIn.addEventListener('click',    e => { e.stopPropagation(); if (zoom < 3.5) { zoom = Math.min(zoom + 0.25, 3.5); applyZoom(); } });
+          btnZOut.addEventListener('click',   e => { e.stopPropagation(); if (zoom > 0.5) { zoom = Math.max(zoom - 0.25, 0.5); applyZoom(); } });
+          btnZReset.addEventListener('click', e => { e.stopPropagation(); resetZoom(); });
 
-          document.addEventListener('keydown', (e) => {
+          // Touch swipe on lightbox
+          let touchStartX = 0;
+          lightbox.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+          lightbox.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 60 && imgs.length > 1) {
+              dx < 0 ? nextBtn.click() : prevBtn.click();
+            }
+          }, { passive: true });
+
+          // Keyboard
+          document.addEventListener('keydown', e => {
             if (lightbox.classList.contains('hidden')) return;
-            if (e.key === 'Escape') closeLightbox();
-            if (e.key === 'ArrowRight' && currentImages.length > 1) nextBtn.click();
-            if (e.key === 'ArrowLeft' && currentImages.length > 1) prevBtn.click();
-            if (e.key === '=' || e.key === '+') btnZoomIn.click();
-            if (e.key === '-') btnZoomOut.click();
+            if (e.key === 'Escape')      close();
+            if (e.key === 'ArrowRight')  nextBtn.click();
+            if (e.key === 'ArrowLeft')   prevBtn.click();
+            if (e.key === '=' || e.key === '+') btnZIn.click();
+            if (e.key === '-')           btnZOut.click();
           });
         }
 
-        // --- WA FORM ---
-        const waForm = document.getElementById('wa-form') as HTMLFormElement;
+        // ── 8. WA FORM ────────────────────────────────────────────
+        const waForm = qs('#wa-form') as HTMLFormElement;
         if (waForm) {
-          waForm.addEventListener('submit', (e) => {
+          waForm.addEventListener('submit', e => {
             e.preventDefault();
-            const name = (document.getElementById('wa-name') as HTMLInputElement).value;
-            const topic = (document.getElementById('wa-topic') as HTMLInputElement).value;
-            const message = (document.getElementById('wa-message') as HTMLTextAreaElement).value;
-            const phoneNumber = '6285707109853';
+            const name    = (qs('#wa-name') as HTMLInputElement).value.trim();
+            const topic   = (qs('#wa-topic') as HTMLInputElement).value.trim();
+            const message = (qs('#wa-message') as HTMLTextAreaElement).value.trim();
+            if (!name || !topic || !message) return;
             const text = `Halo Fatih, saya ${name}.\n\nSaya mau ngobrolin soal: *${topic}*\n\n${message}`;
-            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
+            window.open(`https://wa.me/6285707109853?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
           });
         }
 
-        // ============================================================
-        // SECTION 2: DESKTOP ONLY — Crosshair tracker
-        // Guard ini HANYA membatasi kode crosshair, bukan semua fitur
-        // ============================================================
-        if (window.innerWidth < 768) return;
+        // ── 9. CROSSHAIR (desktop only) ───────────────────────────
+        if (isMobile()) return;
 
-        const chH = document.getElementById('crosshair-h')!;
-        const chV = document.getElementById('crosshair-v')!;
-        const coords = document.getElementById('cursor-coords')!;
+        const chH    = qs('#crosshair-h') as HTMLElement;
+        const chV    = qs('#crosshair-v') as HTMLElement;
+        const coords = qs('#cursor-coords') as HTMLElement;
 
-        if (chH && chV && coords) {
-          let mouseX = window.innerWidth / 2;
-          let mouseY = window.innerHeight / 2;
-          let curX = window.innerWidth / 2;
-          let curY = window.innerHeight / 2;
-          let isHovering = false;
+        if (!chH || !chV || !coords) return;
 
-          window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            if (!isHovering) {
-              chH.classList.remove('opacity-0');
-              chV.classList.remove('opacity-0');
-              coords.classList.remove('opacity-0');
-              isHovering = true;
-            }
-          });
+        let mX = window.innerWidth / 2,  mY = window.innerHeight / 2;
+        let cX = window.innerWidth / 2,  cY = window.innerHeight / 2;
+        let visible = false;
 
-          document.addEventListener('mouseleave', () => {
-            if (isHovering) {
-              chH.classList.add('opacity-0');
-              chV.classList.add('opacity-0');
-              coords.classList.add('opacity-0');
-              isHovering = false;
-            }
-          });
-
-          function animateCrosshair() {
-            curX += (mouseX - curX) * 0.15;
-            curY += (mouseY - curY) * 0.15;
-            chH.style.transform = `translate3d(0, ${curY}px, 0)`;
-            chV.style.transform = `translate3d(${curX}px, 0, 0)`;
-            coords.style.transform = `translate3d(${curX + 15}px, ${curY + 15}px, 0)`;
-            coords.innerText = `X:${Math.round(curX)} // Y:${Math.round(curY)}`;
-            requestAnimationFrame(animateCrosshair);
+        window.addEventListener('mousemove', e => {
+          mX = e.clientX; mY = e.clientY;
+          if (!visible) {
+            chH.style.opacity = '1'; chV.style.opacity = '1'; coords.style.opacity = '1';
+            visible = true;
           }
+        }, { passive: true });
 
-          animateCrosshair();
-        }
+        document.addEventListener('mouseleave', () => {
+          chH.style.opacity = '0'; chV.style.opacity = '0'; coords.style.opacity = '0';
+          visible = false;
+        });
 
-      });
+        const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+        const animCH = () => {
+          cX = lerp(cX, mX, 0.12);
+          cY = lerp(cY, mY, 0.12);
+          chH.style.transform = `translate3d(0,${cY}px,0)`;
+          chV.style.transform = `translate3d(${cX}px,0,0)`;
+          coords.style.transform = `translate3d(${cX + 14}px,${cY + 14}px,0)`;
+          coords.textContent = `X:${Math.round(cX)} // Y:${Math.round(cY)}`;
+          requestAnimationFrame(animCH);
+        };
+        requestAnimationFrame(animCH);
+
+      }); // end astro:page-load
     </script>
+
+    <!-- Hide scrollbar utility (inline so it applies globally) -->
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+
   </body>
 </html>
