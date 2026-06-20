@@ -108,38 +108,16 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       }
 
       /* Biar tombol-tombol responsif di HP */
-  button, .project-image {
-    touch-action: manipulation;
-    cursor: pointer;
-  }
-  
-  /* Pastikan elemen overlay nggak ngalangin klik */
-  .fixed, .absolute {
-    pointer-events: none;
-  }
-  
-  /* TAPI, elemen-elemen ini harus tetap bisa diklik! */
-  button, a, .project-image, #close-lightbox, #prev-btn, #next-btn, #music-toggle {
-    pointer-events: auto !important;
-  }
-
-/* Reset global buat tombol */
-  button, a, img {
-    -webkit-tap-highlight-color: transparent; /* Ilangin kotak biru pas dipencet */
-    touch-action: manipulation;
-  }
-
-  /* FORCE CLICKABILITY */
-  .music-toggle-wrapper, #music-toggle, .project-image, .lightbox {
-    pointer-events: auto !important;
-    z-index: 2147483647 !important; /* Z-index maksimal browser */
-  }
+      button, .project-image {
+        touch-action: manipulation;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
     
     <!-- INTERACTIVE BACKGROUND GRID -->
-<div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none">
+    <div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none">
       
       <div class="hidden md:block absolute inset-0 opacity-[0.08]" 
            style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem;">
@@ -155,56 +133,32 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
 
     </div>
 
-<!-- <div 
-        id="mouse-glow" 
-        class="fixed top-0 left-0 w-[600px] h-[600px] rounded-full pointer-events-none z-10 opacity-0"
-        style="background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 60%); filter: blur(80px); transition: opacity 0.8s ease;"
-      ></div>
-    </div> -->
-
-    <!-- HERO SECTION -->
-    <!-- <section class="min-h-[100svh] flex flex-col items-center justify-center text-center p-6 relative z-10 bg-transparent pt-20 pb-10">
-      <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 text-gradient reveal-up">
-        Fatih : <span class="text-zinc-600">Karya & Proses.</span>
-      </h1>
-      <p class="text-lg md:text-xl text-zinc-400 max-w-2xl leading-relaxed reveal-up delay-100">
-        Scroll untuk menikmati proses kreatif, lalu klik pada visual untuk inspeksi resolusi penuh.
-      </p>
-      
-      <div class="absolute bottom-10 flex flex-col items-center animate-bounce text-xs text-zinc-500 tracking-widest uppercase gap-2 reveal-up delay-300">
-        <span>Scroll</span>
-        <div class="w-px h-8 bg-zinc-500/50"></div>
-      </div>
-    </section> -->
-
 	<div class="fixed inset-0 -z-50 bg-zinc-950/70 overflow-hidden pointer-events-none">
-       </div>
+    </div>
 
     <div class="relative z-10 w-full mb-12 border-b border-white/5">
-<PixelHero 
-  client:load
-  word1="Muhammad"
-  word2="Fatih."
-  description="Eksplorasi desain visual, jiwa kepemimpinan, apresiasi budaya, dan teknologi informasi. Selamat datang di halaman portofolio saya, suatu kehormatan bisa berkolaborasi dengan Anda."
-  primaryCta="Jelajahi Karya"
-  primaryCtaMobile="Jelajahi"
-  secondaryCta="Mari Berkolaborasi"
-  secondaryCtaMobile="Kontak"
-  
-  onPrimaryClick={() => {
-      const el = document.getElementById('projects-container');
-      if (el) {
-          // Mendapatkan posisi elemen dari atas halaman
-          const yOffset = -20; // Offset biar gak nempel banget ke atas (bisa lo sesuaikan)
-          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          
-          window.scrollTo({ top: y, behavior: 'smooth' });
-      } else {
-          console.error("Elemen projects-container tidak ditemukan!");
-      }
-  }}
-  githubUrl="#wa-form"
-/>
+      <PixelHero 
+        client:load
+        word1="Muhammad"
+        word2="Fatih."
+        description="Eksplorasi desain visual, jiwa kepemimpinan, apresiasi budaya, dan teknologi informasi. Selamat datang di halaman portofolio saya, suatu kehormatan bisa berkolaborasi dengan Anda."
+        primaryCta="Jelajahi Karya"
+        primaryCtaMobile="Jelajahi"
+        secondaryCta="Mari Berkolaborasi"
+        secondaryCtaMobile="Kontak"
+        
+        onPrimaryClick={() => {
+            const el = document.getElementById('projects-container');
+            if (el) {
+                const yOffset = -20;
+                const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            } else {
+                console.error("Elemen projects-container tidak ditemukan!");
+            }
+        }}
+        githubUrl="#wa-form"
+      />
     </div>
 
     <!-- TYPOGRAPHY MARQUEE SECTION -->
@@ -247,28 +201,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           >
             
             <!-- LEFT: TEXT CONTENT -->
-            {/* <div class="w-full md:w-1/2 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-24 md:p-16 z-30 pointer-events-none md:bg-transparent md:border-b-0 md:order-1">
-              
-              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent md:hidden -z-10"></div>
-              
-              <div class="w-full max-w-lg pointer-events-auto relative z-10">
-                <span class="inline-block px-3 py-1 bg-white/10 border border-white/10 rounded-full text-zinc-300 font-mono text-[10px] md:text-xs tracking-widest uppercase mb-4 md:mb-6 reveal-up">
-                  Project 0{index + 1}
-                </span>
-                <h2 class="text-4xl md:text-6xl font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-xl md:drop-shadow-none reveal-up delay-100">
-                  {project.title}
-                </h2>
-                <p class="text-zinc-300 md:text-zinc-400 text-sm md:text-lg leading-relaxed font-light drop-shadow-md md:drop-shadow-none reveal-up delay-200">
-                  {project.description}
-                </p>
-                {project.category && (
-                  <div class="mt-6 md:mt-8 text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-widest drop-shadow-md md:drop-shadow-none reveal-up delay-300">
-                    Kategori: <span class="text-zinc-200">{project.category}</span>
-                  </div>
-                )}
-              </div>
-            </div> */}
-<div class="w-full md:w-1/2 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-24 md:p-16 z-30 pointer-events-none md:bg-transparent md:border-b-0 md:order-1 relative">
+            <div class="w-full md:w-1/2 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-24 md:p-16 z-30 pointer-events-none md:bg-transparent md:border-b-0 md:order-1 relative">
               
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent md:hidden -z-10"></div>
               
@@ -311,7 +244,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     </main>
 
     <!-- CONTACT SECTION -->
-<section class="min-h-[80svh] flex flex-col justify-center p-8 md:p-12 bg-zinc-950/60 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
+    <section class="min-h-[80svh] flex flex-col justify-center p-8 md:p-12 bg-zinc-950/60 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
       <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-8">
         
         <div class="w-full md:w-1/2 text-left z-10">
@@ -349,13 +282,12 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
             className="w-full h-full cursor-grab active:cursor-grabbing scale-[1.15] translate-y-6"
           />
 
-          <!-- <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent pointer-events-none"></div> -->
         </div>
 
       </div>
     </section>
 
-<footer class="py-10 bg-zinc-950 border-t border-white/5 text-center relative z-50">
+    <footer class="py-10 bg-zinc-950 border-t border-white/5 text-center relative z-50">
       <p class="text-zinc-500 text-sm font-medium tracking-wide">© 2026 <a style="text-decoration: underline; color: rgb(154, 154, 154);" href="https://www.instagram.com/aftharmuhammad_">Muhammad Abdee Nur Fatih</a>. All rights reserved.</p>
     </footer>
 
@@ -413,7 +345,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           entries.forEach(entry => {
             if (entry.isIntersecting) {
               entry.target.classList.add('in-view');
-              // Unobserve biar animasinya jalan sekali aja pas pertama di-scroll, gak bolak-balik
               observer.unobserve(entry.target); 
             }
           });
@@ -422,58 +353,56 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
 
 
-// --- PENJAGA GAWANG PERFORMA ---
-    // Deteksi jika lebar layar kurang dari 768px (ukuran layar HP/Mobile)
-    // Kalau benar HP, script langsung berhenti di sini, RAM & Baterai aman!
-    if (window.innerWidth < 768) return; 
+        // --- PENJAGA GAWANG PERFORMA ---
+        if (window.innerWidth < 768) return; 
 
-    // --- CINEMATIC GRID CROSSHAIR TRACKER (SUPER SMOOTH LERP) ---
-    const chH = document.getElementById('crosshair-h')!;
-    const chV = document.getElementById('crosshair-v')!;
-    const coords = document.getElementById('cursor-coords')!;
-    
-    if (chH && chV && coords) {
-      let mouseX = window.innerWidth / 2;
-      let mouseY = window.innerHeight / 2;
-      let curX = window.innerWidth / 2;
-      let curY = window.innerHeight / 2;
-      let isHovering = false;
-
-      window.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+        // --- CINEMATIC GRID CROSSHAIR TRACKER (SUPER SMOOTH LERP) ---
+        const chH = document.getElementById('crosshair-h')!;
+        const chV = document.getElementById('crosshair-v')!;
+        const coords = document.getElementById('cursor-coords')!;
         
-        if (!isHovering) {
-          chH.classList.remove('opacity-0');
-          chV.classList.remove('opacity-0');
-          coords.classList.remove('opacity-0');
-          isHovering = true;
-        }
-      });
+        if (chH && chV && coords) {
+          let mouseX = window.innerWidth / 2;
+          let mouseY = window.innerHeight / 2;
+          let curX = window.innerWidth / 2;
+          let curY = window.innerHeight / 2;
+          let isHovering = false;
 
-      document.addEventListener('mouseleave', () => {
-        if (isHovering) {
-          chH.classList.add('opacity-0');
-          chV.classList.add('opacity-0');
-          coords.classList.add('opacity-0');
-          isHovering = false;
-        }
-      });
+          window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            if (!isHovering) {
+              chH.classList.remove('opacity-0');
+              chV.classList.remove('opacity-0');
+              coords.classList.remove('opacity-0');
+              isHovering = true;
+            }
+          });
 
-      function animateCrosshair() {
-        curX += (mouseX - curX) * 0.15;
-        curY += (mouseY - curY) * 0.15;
-        
-        chH.style.transform = `translate3d(0, ${curY}px, 0)`;
-        chV.style.transform = `translate3d(${curX}px, 0, 0)`;
-        
-        coords.style.transform = `translate3d(${curX + 15}px, ${curY + 15}px, 0)`;
-        coords.innerText = `X:${Math.round(curX)} // Y:${Math.round(curY)}`;
-        
-        requestAnimationFrame(animateCrosshair);
-      }
+          document.addEventListener('mouseleave', () => {
+            if (isHovering) {
+              chH.classList.add('opacity-0');
+              chV.classList.add('opacity-0');
+              coords.classList.add('opacity-0');
+              isHovering = false;
+            }
+          });
 
-      animateCrosshair();
+          function animateCrosshair() {
+            curX += (mouseX - curX) * 0.15;
+            curY += (mouseY - curY) * 0.15;
+            
+            chH.style.transform = `translate3d(0, ${curY}px, 0)`;
+            chV.style.transform = `translate3d(${curX}px, 0, 0)`;
+            
+            coords.style.transform = `translate3d(${curX + 15}px, ${curY + 15}px, 0)`;
+            coords.innerText = `X:${Math.round(curX)} // Y:${Math.round(curY)}`;
+            
+            requestAnimationFrame(animateCrosshair);
+          }
+
+          animateCrosshair();
         }
 
         // --- FILTER SYSTEM ---
