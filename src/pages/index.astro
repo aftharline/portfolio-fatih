@@ -21,6 +21,9 @@ const categories = ['All', ...new Set(projects?.map(p => p.category).filter(Bool
 const ogImage = projects && projects.length > 0 && projects[0].image_urls && projects[0].image_urls.length > 0 
   ? projects[0].image_urls[0] 
   : new URL('/og-image.png', Astro.url.origin).href;
+
+// Helper: max 3 images shown in scrollytelling, full set in lightbox
+const MAX_SCROLL_IMAGES = 3;
 ---
 
 <html lang="id" class="scroll-smooth">
@@ -30,7 +33,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     <title>Fatih | Complete Portfolio</title>
     <meta name="description" content="Eksplorasi karya dan proses Fatih." />
 
-    <!-- Performance hints -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://prod.spline.design" />
 
@@ -46,48 +48,45 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
 
     <style>
       /* ============================================================
-         PERFORMANCE: containment + GPU layer promotion
+         BASE
       ============================================================ */
       *, *::before, *::after { box-sizing: border-box; }
-
       html {
         scroll-behavior: smooth;
         text-size-adjust: 100%;
         -webkit-text-size-adjust: 100%;
       }
-
-      /* Prevent layout thrash on mobile */
       body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
       }
-
-      /* ============================================================
-         SCROLLBAR STYLING
-      ============================================================ */
       ::-webkit-scrollbar { width: 2px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* ============================================================
-         PROGRESS BAR (scroll indicator)
-      ============================================================ */
-      #scroll-progress {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 0%;
-        height: 2px;
-        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
-        z-index: 9999;
-        transform-origin: left;
-        will-change: width;
-        pointer-events: none;
-        transition: opacity 0.3s;
+      a, button, [role="button"] {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
       }
 
       /* ============================================================
-         MARQUEE — performant (transform only, no layout)
+         SCROLL PROGRESS
+      ============================================================ */
+      #scroll-progress {
+        position: fixed;
+        top: 0; left: 0;
+        width: 0%;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
+        z-index: 9999;
+        will-change: width;
+        pointer-events: none;
+      }
+
+      /* ============================================================
+         MARQUEE
       ============================================================ */
       @keyframes marquee {
         from { transform: translateX(0); }
@@ -104,6 +103,19 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       }
 
       /* ============================================================
+         MARQUEE SECTION — glassmorphism, zero gap from hero
+      ============================================================ */
+      #marquee-section {
+        /* No border-top: hero's border-b handles the divide */
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        background: rgba(9,9,11,0.55);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        /* Subtle inner highlight on top edge */
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      }
+
+      /* ============================================================
          TYPOGRAPHY
       ============================================================ */
       .text-outline {
@@ -113,16 +125,15 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       }
 
       /* ============================================================
-         PROJECT SECTION — CSS custom-property-driven
+         PROJECT SECTION
       ============================================================ */
       .project-section {
-        height: calc(var(--img-count) * 100svh);
+        height: calc(var(--display-count) * 100svh);
         contain: layout style;
       }
 
       /* ============================================================
-         REVEAL ANIMATIONS — composited only (opacity + transform)
-         NO filter: blur() — kills mobile GPU perf
+         REVEAL ANIMATIONS — composited only
       ============================================================ */
       .reveal-up {
         opacity: 0;
@@ -132,26 +143,17 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: transform, opacity;
       }
-      .reveal-up.in-view {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      .reveal-up.in-view { opacity: 1; transform: translateY(0); }
 
-      /* Char-by-char split animation */
-      .split-char {
-        display: inline-block;
+      .reveal-right {
         opacity: 0;
-        transform: translateY(24px) rotateX(-20deg);
+        transform: translateX(40px);
         transition:
-          opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 1s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: transform, opacity;
-        backface-visibility: hidden;
       }
-      .split-char.in-view {
-        opacity: 1;
-        transform: translateY(0) rotateX(0deg);
-      }
+      .reveal-right.in-view { opacity: 1; transform: translateX(0); }
 
       .delay-50  { transition-delay: 50ms; }
       .delay-100 { transition-delay: 100ms; }
@@ -161,18 +163,15 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       .delay-400 { transition-delay: 400ms; }
 
       /* ============================================================
-         IMAGE HOVER — composited only
+         IMAGE
       ============================================================ */
       .img-premium {
-        transform: scale(1.02);
         transition:
           transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
           filter 1.4s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: transform, filter;
         backface-visibility: hidden;
       }
-
-      /* Desktop: grayscale default, color on hover */
       @media (min-width: 768px) and (hover: hover) {
         .img-premium {
           filter: grayscale(100%) brightness(0.65) contrast(1.1);
@@ -183,8 +182,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           transform: scale(1.04);
         }
       }
-
-      /* Mobile / touch: always color, slight dim */
       @media (max-width: 767px), (hover: none) {
         .img-premium {
           filter: grayscale(0%) brightness(0.85);
@@ -193,46 +190,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       }
 
       /* ============================================================
-         PROJECT INDEX COUNTER — sliding number animation
-      ============================================================ */
-      .project-counter {
-        font-variant-numeric: tabular-nums;
-        font-feature-settings: "tnum";
-      }
-
-      /* ============================================================
-         SECTION PROGRESS DOT NAV (desktop side)
-      ============================================================ */
-      #dot-nav {
-        position: fixed;
-        right: 1.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        z-index: 60;
-        pointer-events: none;
-      }
-      @media (max-width: 767px) { #dot-nav { display: none; } }
-
-      .dot-nav-item {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.2);
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        pointer-events: auto;
-        cursor: pointer;
-      }
-      .dot-nav-item.active {
-        background: rgba(255,255,255,0.9);
-        height: 20px;
-        border-radius: 3px;
-      }
-
-      /* ============================================================
-         IMAGE PARALLAX wrapper
+         PARALLAX WRAPPER
       ============================================================ */
       .parallax-img-wrapper {
         position: absolute;
@@ -241,13 +199,11 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         height: 116%;
         will-change: transform;
       }
-
       .parallax-img-wrapper .img-premium {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
-
       @media (max-width: 767px) {
         .parallax-img-wrapper {
           position: absolute;
@@ -258,10 +214,58 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       }
 
       /* ============================================================
-         CROSSHAIR (desktop only) — composited
+         LINE DRAW
       ============================================================ */
-      #crosshair-h,
-      #crosshair-v {
+      .line-draw {
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
+      }
+      .line-draw.in-view { transform: scaleX(1); }
+
+      /* ============================================================
+         DOT NAV
+      ============================================================ */
+      #dot-nav {
+        position: fixed;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 60;
+        pointer-events: none;
+      }
+      @media (max-width: 767px) { #dot-nav { display: none; } }
+      .dot-nav-item {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.18);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
+        cursor: pointer;
+      }
+      .dot-nav-item.active {
+        background: rgba(255,255,255,0.9);
+        height: 18px;
+        border-radius: 2px;
+      }
+
+      /* ============================================================
+         PROJECT COUNTER
+      ============================================================ */
+      .project-counter {
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
+      }
+
+      /* ============================================================
+         CROSSHAIR (desktop)
+      ============================================================ */
+      #crosshair-h, #crosshair-v {
         position: fixed;
         pointer-events: none;
         z-index: 10;
@@ -293,65 +297,106 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       }
 
       /* ============================================================
-         STICKY TEXT PANEL fade helper
-      ============================================================ */
-      .text-panel-fade {
-        position: absolute;
-        bottom: 0; left: 0; right: 0;
-        height: 40%;
-        background: linear-gradient(to top, rgba(9,9,11,0.95) 0%, transparent 100%);
-        pointer-events: none;
-        z-index: -1;
-      }
-
-      /* ============================================================
-         NAV FILTER — pill morph
+         FILTER NAV — enhanced
       ============================================================ */
       .filter-btn {
         position: relative;
         overflow: hidden;
         isolation: isolate;
+        transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s;
       }
-      .filter-btn::after {
+      .filter-btn:active { transform: scale(0.95); }
+      .filter-btn::before {
         content: '';
         position: absolute;
         inset: 0;
         background: rgba(255,255,255,0.05);
         opacity: 0;
-        transition: opacity 0.3s;
+        transition: opacity 0.25s;
         border-radius: inherit;
       }
-      .filter-btn:hover::after { opacity: 1; }
+      .filter-btn:hover::before { opacity: 1; }
 
       /* ============================================================
-         SECTION ENTRANCE — slide from right (images)
+         SITE HEADER — new top navbar
       ============================================================ */
-      .reveal-right {
-        opacity: 0;
-        transform: translateX(40px);
-        transition:
-          opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: transform, opacity;
+      #site-header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 200;
+        padding: 0 1.5rem;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(9,9,11,0.72);
+        backdrop-filter: blur(20px) saturate(150%);
+        -webkit-backdrop-filter: blur(20px) saturate(150%);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: background 0.4s, border-color 0.4s;
       }
-      .reveal-right.in-view {
-        opacity: 1;
-        transform: translateX(0);
+      #site-header.scrolled {
+        background: rgba(9,9,11,0.92);
+        border-bottom-color: rgba(255,255,255,0.08);
+      }
+      .header-logo {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.85);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .header-logo:hover { color: white; }
+      .header-logo span {
+        color: rgba(255,255,255,0.3);
+        font-weight: 400;
+      }
+      .header-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .header-link {
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.4);
+        text-decoration: none;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        transition: color 0.2s, background 0.2s;
+      }
+      .header-link:hover {
+        color: white;
+        background: rgba(255,255,255,0.06);
+      }
+      .header-cta {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: black;
+        background: white;
+        padding: 0.45rem 1rem;
+        border-radius: 999px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        margin-left: 0.5rem;
+      }
+      .header-cta:hover {
+        background: #e5e5e5;
+        box-shadow: 0 0 20px rgba(255,255,255,0.15);
+      }
+      .header-cta:active { transform: scale(0.96); }
+      @media (max-width: 767px) {
+        .header-links .header-link { display: none; }
       }
 
       /* ============================================================
-         HORIZONTAL RULE DRAW
-      ============================================================ */
-      .line-draw {
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: transform;
-      }
-      .line-draw.in-view { transform: scaleX(1); }
-
-      /* ============================================================
-         CONTACT SECTION
+         CONTACT FORM
       ============================================================ */
       .glass-input {
         background: rgba(255,255,255,0.04);
@@ -362,10 +407,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         color: white;
         width: 100%;
         outline: none;
-        transition:
-          border-color 0.3s,
-          background 0.3s,
-          box-shadow 0.3s;
+        transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
         -webkit-appearance: none;
       }
       .glass-input::placeholder { color: rgba(255,255,255,0.25); }
@@ -374,7 +416,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         background: rgba(255,255,255,0.07);
         box-shadow: 0 0 0 3px rgba(255,255,255,0.05);
       }
-
       .btn-submit {
         position: relative;
         overflow: hidden;
@@ -386,10 +427,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         padding: 1rem;
         border-radius: 12px;
         width: 100%;
-        transition:
-          background 0.3s,
-          transform 0.2s,
-          box-shadow 0.3s;
+        transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
         cursor: pointer;
         border: none;
       }
@@ -411,9 +449,7 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
       /* ============================================================
          LIGHTBOX
       ============================================================ */
-      #lightbox {
-        contain: layout style;
-      }
+      #lightbox { contain: layout style; }
       .lightbox-bg {
         position: absolute;
         inset: 0;
@@ -429,52 +465,223 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
         cursor: pointer;
-        transition:
-          background 0.3s,
-          color 0.3s,
-          transform 0.2s,
-          box-shadow 0.3s;
+        transition: background 0.3s, color 0.3s, transform 0.2s, box-shadow 0.3s;
       }
       #music-toggle:active { transform: scale(0.9); }
 
       /* ============================================================
-         FOOTER
+         BACK TO TOP BUTTON
       ============================================================ */
-      footer a {
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        color: rgba(200,200,200,0.7);
-        transition: color 0.2s;
-      }
-      footer a:hover { color: white; }
-
-      /* ============================================================
-         MOBILE TOUCH — remove 300ms delay everywhere
-      ============================================================ */
-      a, button, [role="button"] {
+      #back-to-top {
+        position: fixed;
+        bottom: 5.5rem;
+        right: 1.5rem;
+        z-index: 100;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(24,24,27,0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(12px) scale(0.9);
+        transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1), transform 0.35s cubic-bezier(0.16,1,0.3,1), background 0.25s, color 0.25s, box-shadow 0.25s;
+        pointer-events: none;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
+      #back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+      #back-to-top:hover {
+        background: white;
+        color: black;
+        box-shadow: 0 0 24px rgba(255,255,255,0.2);
+      }
+      #back-to-top:active { transform: scale(0.9); }
+      @media (min-width: 768px) {
+        #back-to-top {
+          bottom: 6rem;
+          right: 2.5rem;
+          width: 48px;
+          height: 48px;
+        }
+        #music-toggle {
+          bottom: 2.5rem;
+          right: 2.5rem;
+        }
+      }
 
       /* ============================================================
-         SAFE AREA padding (notch/home bar)
+         FOOTER — redesigned
+      ============================================================ */
+      #site-footer {
+        position: relative;
+        z-index: 50;
+        background: #09090b;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        overflow: hidden;
+      }
+      .footer-inner {
+        max-width: 80rem;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 2rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      @media (min-width: 768px) {
+        .footer-inner {
+          grid-template-columns: 1fr auto;
+          gap: 3rem;
+          align-items: end;
+        }
+      }
+      .footer-brand-name {
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: rgba(255,255,255,0.06);
+        line-height: 1;
+        text-transform: uppercase;
+        pointer-events: none;
+        user-select: none;
+      }
+      @media (min-width: 768px) {
+        .footer-brand-name { font-size: 3.5rem; }
+      }
+      .footer-tagline {
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.2);
+        margin-top: 0.5rem;
+      }
+      .footer-socials {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+      }
+      .footer-social-link {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.35);
+        text-decoration: none;
+        transition: border-color 0.25s, color 0.25s, background 0.25s;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .footer-social-link:hover {
+        border-color: rgba(255,255,255,0.3);
+        color: white;
+        background: rgba(255,255,255,0.05);
+      }
+      .footer-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      @media (min-width: 768px) {
+        .footer-right { align-items: flex-end; }
+      }
+      .footer-copy {
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.18);
+      }
+      .footer-copy a {
+        color: rgba(255,255,255,0.35);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .footer-copy a:hover { color: rgba(255,255,255,0.75); }
+      .footer-status {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.25);
+      }
+      .footer-status-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 6px #4ade80;
+        animation: pulse-dot 2.5s ease-in-out infinite;
+      }
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      .footer-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.04);
+        margin: 0;
+      }
+      .footer-bottom {
+        padding: 1rem 1.5rem;
+        max-width: 80rem;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+      @media (min-width: 768px) {
+        .footer-bottom {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
+      }
+      .footer-nav-links {
+        display: flex;
+        gap: 1.25rem;
+      }
+      .footer-nav-link {
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.2);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .footer-nav-link:hover { color: rgba(255,255,255,0.6); }
+
+      /* ============================================================
+         SAFE AREA
       ============================================================ */
       @supports (padding: env(safe-area-inset-bottom)) {
         #music-toggle {
           bottom: calc(1.5rem + env(safe-area-inset-bottom));
         }
+        #back-to-top {
+          bottom: calc(5rem + env(safe-area-inset-bottom));
+        }
         nav#filter-nav {
           padding-left: max(1.5rem, env(safe-area-inset-left));
           padding-right: max(1.5rem, env(safe-area-inset-right));
         }
-      }
-
-      /* ============================================================
-         LOADING SKELETON (optional pero nice)
-      ============================================================ */
-      @keyframes shimmer {
-        from { background-position: -200% 0; }
-        to   { background-position:  200% 0; }
       }
     </style>
   </head>
@@ -484,6 +691,22 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     <!-- SCROLL PROGRESS -->
     <div id="scroll-progress" aria-hidden="true"></div>
 
+    <!-- ============================================================
+         SITE HEADER (top navbar)
+    ============================================================ -->
+    <header id="site-header">
+      <a href="#" class="header-logo">Fatih <span>/ Portfolio</span></a>
+      <nav class="header-links">
+        <a href="#projects-container" class="header-link">Karya</a>
+        <a href="#wa-form" class="header-link">Kontak</a>
+        <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="header-link hidden md:inline-flex items-center gap-1.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Instagram
+        </a>
+        <a href="#wa-form" class="header-cta">Kolaborasi ↗</a>
+      </nav>
+    </header>
+
     <!-- DOT NAV (desktop sidebar) -->
     <nav id="dot-nav" aria-hidden="true">
       {projects && projects.map((_, i) => (
@@ -492,33 +715,25 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     </nav>
 
     <!-- ============================================================
-         BACKGROUND — isolated layer, no repaints below
+         BACKGROUND
     ============================================================ -->
     <div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none" aria-hidden="true">
-
-      <!-- Grid: desktop only, lightweight -->
       <div class="hidden md:block absolute inset-0 opacity-[0.05]"
            style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem; contain: strict;">
       </div>
-
-      <!-- Boxes: hidden on mobile entirely (too heavy) -->
       <div class="hidden md:block absolute inset-0 z-0 opacity-[0.03] [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]">
         <Boxes client:idle />
       </div>
-
-      <!-- Crosshair -->
       <div id="crosshair-h" class="hidden md:block"></div>
       <div id="crosshair-v" class="hidden md:block"></div>
       <div id="cursor-coords" class="hidden md:block"></div>
     </div>
-
-    <!-- Subtle dark veil -->
     <div class="fixed inset-0 -z-40 bg-zinc-950/60 pointer-events-none" aria-hidden="true"></div>
 
     <!-- ============================================================
-         HERO
+         HERO — no mb, border-b acts as divider to marquee
     ============================================================ -->
-    <div class="relative z-10 w-full mb-12 border-b border-white/5">
+    <div class="relative z-10 w-full border-b border-white/5 pt-14">
       <PixelHero
         client:load
         word1="Muhammad"
@@ -540,11 +755,11 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     </div>
 
     <!-- ============================================================
-         MARQUEE
+         MARQUEE — glassmorphism, zero gap (shares hero border-b)
     ============================================================ -->
-    <div class="w-full overflow-hidden border-y border-white/5 py-5 md:py-7 z-20 relative" aria-hidden="true">
-      <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none"></div>
-      <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none"></div>
+    <div id="marquee-section" class="w-full overflow-hidden py-5 md:py-7 z-20 relative" aria-hidden="true">
+      <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
+      <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
       <div class="animate-marquee">
         <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none">
           INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;
@@ -558,11 +773,11 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     <!-- ============================================================
          FILTER NAV
     ============================================================ -->
-    <nav id="filter-nav" class="sticky top-0 z-50 py-4 bg-zinc-950/85 backdrop-blur-2xl border-b border-white/5 flex justify-start md:justify-center gap-2 overflow-x-auto px-6 reveal-up no-scrollbar">
+    <nav id="filter-nav" class="sticky top-0 z-50 py-3 bg-zinc-950/85 backdrop-blur-2xl border-b border-white/5 flex justify-start md:justify-center gap-2 overflow-x-auto px-6 reveal-up no-scrollbar">
       {categories.map((cat) => (
         <button
           data-filter={cat}
-          class="filter-btn flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase transition-all border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white"
+          class="filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-[10px] md:text-xs font-semibold tracking-widest uppercase border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white"
           data-active={cat === 'All'}
         >
           {cat}
@@ -575,37 +790,36 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     ============================================================ -->
     <main class="relative w-full" id="projects-container">
       {projects && projects.map((project, index) => {
-        const images = project.image_urls || [''];
+        const allImages = project.image_urls || [''];
+        // Displayed in scroll = max 3; lightbox always gets all
+        const displayImages = allImages.slice(0, MAX_SCROLL_IMAGES);
+        const hasMore = allImages.length > MAX_SCROLL_IMAGES;
         return (
           <section
             class="project-section relative w-full flex flex-col md:flex-row border-b border-white/5 img-container"
             data-category={project.category}
             data-project-index={index}
-            style={`--img-count: ${images.length}; z-index: ${index + 10};`}
+            style={`--display-count: ${displayImages.length}; z-index: ${index + 10};`}
           >
 
-            <!-- ── LEFT: STICKY TEXT PANEL ─────────────────────── -->
+            <!-- LEFT: TEXT PANEL -->
             <div class="w-full md:w-5/12 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-28 md:p-16 z-30 pointer-events-none md:order-1">
-
-              <!-- Mobile gradient overlay -->
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/98 via-zinc-950/60 to-transparent md:hidden -z-10" aria-hidden="true"></div>
-
               <div class="w-full max-w-lg pointer-events-auto relative">
 
-                <!-- Project number + line -->
                 <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
                   <span class="project-counter font-mono text-[10px] md:text-xs text-zinc-600 tracking-[0.3em] uppercase">
                     0{index + 1}
                   </span>
                   <div class="flex-1 h-px bg-white/10 line-draw max-w-[60px]"></div>
                   {project.category && (
-                    <span class="px-2.5 py-0.5 bg-white/5 border border-white/8 rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">
+                    <span class="px-2.5 py-0.5 bg-white/5 border border-white/[0.08] rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">
                       {project.category}
                     </span>
                   )}
                 </div>
 
-                <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white project-title reveal-up delay-100">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white reveal-up delay-100">
                   {project.title}
                 </h2>
 
@@ -613,34 +827,45 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
                   {project.description}
                 </p>
 
-                <!-- Image count pill -->
-                <div class="mt-6 flex items-center gap-2 reveal-up delay-300">
+                <!-- image count + "more" indicator -->
+                <div class="mt-6 flex items-center gap-3 reveal-up delay-300">
                   <div class="flex gap-1">
-                    {images.map((_: string, dotI: number) => (
-                      <div class={`w-1 h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20'}`}></div>
+                    {displayImages.map((_: string, dotI: number) => (
+                      <div class={`h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20 w-1'}`}></div>
                     ))}
+                    {hasMore && <div class="h-1 w-1 rounded-full bg-white/10"></div>}
                   </div>
-                  <span class="text-[10px] font-mono text-zinc-600 tracking-widest">{images.length} FOTO</span>
+                  <span class="text-[10px] font-mono text-zinc-600 tracking-widest">
+                    {allImages.length} FOTO {hasMore ? `· ${displayImages.length} DITAMPILKAN` : ''}
+                  </span>
                 </div>
+
+                {hasMore && (
+                  <button
+                    class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer"
+                    data-open-all-images={JSON.stringify(allImages)}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
+                    Lihat semua {allImages.length} foto
+                  </button>
+                )}
               </div>
             </div>
 
-            <!-- ── RIGHT: IMAGE STACK ─────────────────────────── -->
+            <!-- RIGHT: IMAGE STACK (max 3 displayed) -->
             <div class="absolute inset-0 md:relative w-full md:w-7/12 z-10 md:order-2">
-              {images.map((url: string, imgIndex: number) => (
+              {displayImages.map((url: string, imgIndex: number) => (
                 <div class="h-[100svh] w-full sticky top-0 overflow-hidden">
-                  <!-- Vignette overlay for depth -->
                   <div class="absolute inset-0 z-10 pointer-events-none"
                        style="background: radial-gradient(ellipse at center, transparent 40%, rgba(9,9,11,0.4) 100%)"
                        aria-hidden="true">
                   </div>
-
                   <div class="parallax-img-wrapper" data-parallax>
                     <img
                       src={url}
                       alt={`${project.title} - foto ${imgIndex + 1}`}
                       class="project-image img-premium w-full h-full object-cover cursor-zoom-in"
-                      data-images={JSON.stringify(images)}
+                      data-images={JSON.stringify(allImages)}
                       data-index={imgIndex}
                       loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'}
                       decoding="async"
@@ -657,15 +882,11 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     </main>
 
     <!-- ============================================================
-         CONTACT SECTION
+         CONTACT
     ============================================================ -->
     <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
-
-      <!-- Ambient glow -->
       <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-
       <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
-
         <div class="w-full md:w-1/2 text-left z-10">
           <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-600 mb-4 reveal-up">Kolaborasi</p>
           <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
@@ -673,45 +894,24 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">
             Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.
           </p>
-
           <form id="wa-form" class="space-y-4 w-full max-w-lg reveal-up delay-150" novalidate>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
                 <label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-name">Nama / Instansi</label>
-                <input
-                  type="text" id="wa-name"
-                  placeholder="Misal: Budi / Duta Remaja"
-                  required
-                  autocomplete="name"
-                  class="glass-input"
-                />
+                <input type="text" id="wa-name" placeholder="Misal: Budi / Duta Remaja" required autocomplete="name" class="glass-input" />
               </div>
               <div class="flex flex-col gap-1.5">
                 <label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-topic">Topik Diskusi</label>
-                <input
-                  type="text" id="wa-topic"
-                  placeholder="Misal: Desain / Project Kampus"
-                  required
-                  class="glass-input"
-                />
+                <input type="text" id="wa-topic" placeholder="Misal: Desain / Project Kampus" required class="glass-input" />
               </div>
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-message">Pesan</label>
-              <textarea
-                id="wa-message" rows="4"
-                placeholder="Ceritakan detail idenya di sini..."
-                required
-                class="glass-input resize-none"
-              ></textarea>
+              <textarea id="wa-message" rows="4" placeholder="Ceritakan detail idenya di sini..." required class="glass-input resize-none"></textarea>
             </div>
-            <button type="submit" class="btn-submit mt-2">
-              Kirim Pesan via WhatsApp ↗
-            </button>
+            <button type="submit" class="btn-submit mt-2">Kirim Pesan via WhatsApp ↗</button>
           </form>
         </div>
-
-        <!-- Spline — load only when visible, desktop only -->
         <div class="hidden md:flex w-full md:w-1/2 h-[550px] md:h-[650px] relative items-end justify-center reveal-up delay-300">
           <SplineScene
             client:visible
@@ -719,17 +919,48 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
             className="w-full h-full cursor-grab active:cursor-grabbing scale-[1.15] translate-y-6"
           />
         </div>
-
       </div>
     </section>
 
     <!-- ============================================================
-         FOOTER
+         FOOTER — redesigned
     ============================================================ -->
-    <footer class="py-10 bg-zinc-950 border-t border-white/5 text-center relative z-50">
-      <p class="text-zinc-500 text-xs font-medium tracking-widest uppercase">
-        © 2026 <a href="https://www.instagram.com/aftharmuhammad_">Muhammad Abdee Nur Fatih</a>. All rights reserved.
-      </p>
+    <footer id="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand-name">Muhammad Fatih.</div>
+          <div class="footer-tagline">Informatics · Leadership · Design</div>
+          <div class="footer-socials">
+            <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="footer-social-link" aria-label="Instagram">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#wa-form" class="footer-social-link" aria-label="WhatsApp">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </a>
+            <a href="#projects-container" class="footer-social-link" aria-label="Portfolio">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="footer-status">
+            <span class="footer-status-dot"></span>
+            Open for collaboration
+          </div>
+          <div class="footer-copy">
+            © 2026 <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener">Muhammad Abdee Nur Fatih</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom">
+        <nav class="footer-nav-links">
+          <a href="#projects-container" class="footer-nav-link">Karya</a>
+          <a href="#wa-form" class="footer-nav-link">Kolaborasi</a>
+          <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="footer-nav-link">Instagram</a>
+        </nav>
+        <span class="footer-copy">Made with precision in Surabaya.</span>
+      </div>
     </footer>
 
     <!-- ============================================================
@@ -738,18 +969,17 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     <audio id="bg-music" loop preload="none">
       <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
     </audio>
+    <button id="music-toggle" class="fixed bottom-6 right-6 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/60 p-4 rounded-full shadow-2xl flex items-center justify-center" aria-label="Toggle Music">
+      <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+    </button>
 
-    <button
-      id="music-toggle"
-      class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/60 p-4 rounded-full shadow-2xl flex items-center justify-center"
-      aria-label="Toggle Music"
-    >
-      <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block">
-        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-      </svg>
-      <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
-        <rect x="6" y="4" width="4" height="16"></rect>
-        <rect x="14" y="4" width="4" height="16"></rect>
+    <!-- ============================================================
+         BACK TO TOP
+    ============================================================ -->
+    <button id="back-to-top" aria-label="Kembali ke atas">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
       </svg>
     </button>
 
@@ -758,257 +988,216 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
     ============================================================ -->
     <div id="lightbox" class="fixed inset-0 z-[999] hidden items-center justify-center" role="dialog" aria-modal="true" aria-label="Image viewer">
       <div class="lightbox-bg"></div>
-
-      <!-- Controls bar -->
-      <div class="absolute top-4 left-4 md:top-6 md:left-6 flex items-center bg-zinc-900/70 backdrop-blur-md border border-white/8 rounded-xl p-1 z-50 gap-1">
+      <div class="absolute top-4 left-4 md:top-6 md:left-6 flex items-center bg-zinc-900/70 backdrop-blur-md border border-white/[0.08] rounded-xl p-1 z-50 gap-1">
         <button id="zoom-out" class="text-white/60 hover:text-white px-3 py-2 text-base font-bold transition hover:bg-zinc-800 rounded-lg active:scale-95" aria-label="Zoom out">−</button>
         <span id="zoom-indicator" class="text-[10px] font-mono px-2 text-zinc-500 min-w-[40px] text-center">100%</span>
         <button id="zoom-in" class="text-white/60 hover:text-white px-3 py-2 text-base font-bold transition hover:bg-zinc-800 rounded-lg active:scale-95" aria-label="Zoom in">+</button>
         <div class="w-px h-4 bg-white/10 mx-1"></div>
         <button id="zoom-reset" class="text-[10px] font-semibold tracking-wide text-zinc-500 hover:text-white px-3 py-2 transition hover:bg-zinc-800 rounded-lg" aria-label="Reset zoom">RESET</button>
       </div>
-
-      <!-- Close -->
       <button id="close-lightbox" class="absolute top-4 right-4 md:top-6 md:right-6 text-white/40 hover:text-white w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition z-50 text-2xl" aria-label="Close">×</button>
-
-      <!-- Image area -->
       <div class="relative w-full h-full flex items-center justify-center p-4 z-20">
-        <button id="prev-btn" class="absolute left-3 md:left-6 bg-zinc-900/80 hover:bg-zinc-800 text-white w-12 h-12 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md text-lg active:scale-95" aria-label="Previous image">←</button>
+        <button id="prev-btn" class="absolute left-3 md:left-6 bg-zinc-900/80 hover:bg-zinc-800 text-white w-12 h-12 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md text-lg active:scale-95" aria-label="Previous">←</button>
         <div id="img-zoom-wrapper" class="transition-transform duration-300 ease-out origin-center flex justify-center items-center">
           <img id="lightbox-img" src="" alt="Foto preview" class="max-w-full max-h-[80vh] md:max-h-[85vh] object-contain shadow-2xl rounded-sm select-none" draggable="false" />
         </div>
-        <button id="next-btn" class="absolute right-3 md:right-6 bg-zinc-900/80 hover:bg-zinc-800 text-white w-12 h-12 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md text-lg active:scale-95" aria-label="Next image">→</button>
+        <button id="next-btn" class="absolute right-3 md:right-6 bg-zinc-900/80 hover:bg-zinc-800 text-white w-12 h-12 rounded-full flex items-center justify-center transition border border-white/10 z-50 backdrop-blur-md text-lg active:scale-95" aria-label="Next">→</button>
       </div>
-
-      <div id="lightbox-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-zinc-400 text-xs font-mono tracking-widest bg-zinc-900/70 border border-white/8 px-4 py-2 rounded-full backdrop-blur-md z-50">
-        1 / 1
-      </div>
+      <div id="lightbox-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-zinc-400 text-xs font-mono tracking-widest bg-zinc-900/70 border border-white/[0.08] px-4 py-2 rounded-full backdrop-blur-md z-50">1 / 1</div>
     </div>
 
     <!-- ============================================================
-         SCRIPTS — split into modules for clarity
+         SCRIPTS
     ============================================================ -->
     <script>
       document.addEventListener('astro:page-load', () => {
 
-        // ── Helpers ───────────────────────────────────────────────
         const qs  = (s: string) => document.querySelector(s);
         const qsa = (s: string) => document.querySelectorAll(s);
-
         const isMobile = () => window.innerWidth < 768;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // ── 1. SCROLL PROGRESS ────────────────────────────────────
         const progressBar = qs('#scroll-progress') as HTMLElement;
         if (progressBar) {
-          const updateProgress = () => {
+          const update = () => {
             const max = document.documentElement.scrollHeight - window.innerHeight;
-            const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
-            progressBar.style.width = `${pct}%`;
+            progressBar.style.width = max > 0 ? `${(window.scrollY / max) * 100}%` : '0%';
           };
-          window.addEventListener('scroll', updateProgress, { passive: true });
-          updateProgress();
+          window.addEventListener('scroll', update, { passive: true });
+          update();
         }
 
-        // ── 2. INTERSECTION OBSERVER — reveal-up + line-draw ──────
+        // ── 2. HEADER scroll state ────────────────────────────────
+        const siteHeader = qs('#site-header') as HTMLElement;
+        if (siteHeader) {
+          const onScroll = () => siteHeader.classList.toggle('scrolled', window.scrollY > 40);
+          window.addEventListener('scroll', onScroll, { passive: true });
+          onScroll();
+        }
+
+        // ── 3. REVEAL OBSERVER ────────────────────────────────────
         const revealObs = new IntersectionObserver(
-          (entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('in-view');
-                revealObs.unobserve(entry.target);
-              }
-            });
-          },
+          entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); revealObs.unobserve(e.target); } }),
           { rootMargin: '0px 0px -60px 0px', threshold: 0.1 }
         );
-        qsa('.reveal-up, .reveal-right, .line-draw, .split-char').forEach(el => revealObs.observe(el));
+        qsa('.reveal-up, .reveal-right, .line-draw').forEach(el => revealObs.observe(el));
 
-        // ── 3. DOT NAV ────────────────────────────────────────────
+        // ── 4. DOT NAV ────────────────────────────────────────────
         const dots     = qsa('.dot-nav-item');
         const sections = qsa('.project-section');
-
         if (dots.length && sections.length) {
-          // click to scroll
-          dots.forEach((dot, i) => {
-            dot.addEventListener('click', () => {
-              sections[i]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-          });
-
-          // active dot on scroll
+          dots.forEach((dot, i) => dot.addEventListener('click', () => sections[i]?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
           const dotObs = new IntersectionObserver(
-            (entries) => {
-              entries.forEach(entry => {
-                const idx = parseInt((entry.target as HTMLElement).dataset.projectIndex || '0');
-                if (entry.isIntersecting) {
-                  dots.forEach(d => d.classList.remove('active'));
-                  dots[idx]?.classList.add('active');
-                }
-              });
-            },
+            entries => entries.forEach(e => {
+              const idx = parseInt((e.target as HTMLElement).dataset.projectIndex || '0');
+              if (e.isIntersecting) { dots.forEach(d => d.classList.remove('active')); dots[idx]?.classList.add('active'); }
+            }),
             { rootMargin: '-40% 0px -40% 0px', threshold: 0 }
           );
           sections.forEach(s => dotObs.observe(s));
         }
 
-        // ── 4. FILTER SYSTEM ──────────────────────────────────────
-        const filterBtns = qsa('.filter-btn');
-        filterBtns.forEach(btn => {
+        // ── 5. FILTER ─────────────────────────────────────────────
+        qsa('.filter-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
+            qsa('.filter-btn').forEach(b => b.setAttribute('data-active', 'false'));
             btn.setAttribute('data-active', 'true');
             const filter = btn.getAttribute('data-filter');
-            (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(section => {
-              const cat = section.getAttribute('data-category');
-              const visible = filter === 'All' || cat === filter;
-              section.style.display = visible ? 'flex' : 'none';
+            (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
+              s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'flex' : 'none';
             });
           });
         });
 
-        // ── 5. PARALLAX (rAF-based, desktop only) ─────────────────
+        // ── 6. PARALLAX (desktop, rAF-throttled) ─────────────────
         if (!isMobile() && !prefersReducedMotion) {
           const parallaxEls = qsa('[data-parallax]') as NodeListOf<HTMLElement>;
           let ticking = false;
-
           const doParallax = () => {
             parallaxEls.forEach(el => {
-              const rect = el.closest('.sticky')!.getBoundingClientRect();
-              const progress = -rect.top / window.innerHeight;
-              const y = progress * 30; // max 30px shift
-              el.style.transform = `translate3d(0, ${y}px, 0)`;
+              const sticky = el.closest('.sticky');
+              if (!sticky) return;
+              const rect = sticky.getBoundingClientRect();
+              el.style.transform = `translate3d(0,${(-rect.top / window.innerHeight) * 30}px,0)`;
             });
             ticking = false;
           };
-
-          window.addEventListener('scroll', () => {
-            if (!ticking) {
-              requestAnimationFrame(doParallax);
-              ticking = true;
-            }
-          }, { passive: true });
+          window.addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(doParallax); ticking = true; } }, { passive: true });
         }
 
-        // ── 6. MUSIC PLAYER ───────────────────────────────────────
-        const bgMusic    = qs('#bg-music') as HTMLAudioElement;
+        // ── 7. MUSIC ──────────────────────────────────────────────
+        const bgMusic     = qs('#bg-music') as HTMLAudioElement;
         const musicToggle = qs('#music-toggle') as HTMLButtonElement;
-        const iconPlay   = qs('#music-icon-play');
-        const iconPause  = qs('#music-icon-pause');
-
+        const iconPlay    = qs('#music-icon-play');
+        const iconPause   = qs('#music-icon-pause');
         if (musicToggle && bgMusic) {
           bgMusic.volume = 0.25;
           let playing = false;
-
           musicToggle.addEventListener('click', () => {
             if (playing) {
               bgMusic.pause();
-              iconPause?.classList.add('hidden');
-              iconPlay?.classList.remove('hidden');
+              iconPause?.classList.add('hidden'); iconPlay?.classList.remove('hidden');
               musicToggle.classList.remove('bg-white', 'text-black');
             } else {
-              bgMusic.play().catch(() => {}); // ignore autoplay policy error
-              iconPlay?.classList.add('hidden');
-              iconPause?.classList.remove('hidden');
+              bgMusic.play().catch(() => {});
+              iconPlay?.classList.add('hidden'); iconPause?.classList.remove('hidden');
               musicToggle.classList.add('bg-white', 'text-black');
             }
             playing = !playing;
           });
         }
 
-        // ── 7. LIGHTBOX ───────────────────────────────────────────
+        // ── 8. BACK TO TOP ────────────────────────────────────────
+        const btt = qs('#back-to-top') as HTMLButtonElement;
+        if (btt) {
+          const toggleBtt = () => btt.classList.toggle('visible', window.scrollY > 400);
+          window.addEventListener('scroll', toggleBtt, { passive: true });
+          btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+          toggleBtt();
+        }
+
+        // ── 9. LIGHTBOX ───────────────────────────────────────────
         const lightbox = qs('#lightbox') as HTMLElement;
         if (lightbox) {
-          const lightboxImg  = qs('#lightbox-img') as HTMLImageElement;
-          const zoomWrapper  = qs('#img-zoom-wrapper') as HTMLElement;
-          const counter      = qs('#lightbox-counter') as HTMLElement;
-          const closeLbBtn   = qs('#close-lightbox') as HTMLButtonElement;
-          const prevBtn      = qs('#prev-btn') as HTMLButtonElement;
-          const nextBtn      = qs('#next-btn') as HTMLButtonElement;
-          const btnZIn       = qs('#zoom-in') as HTMLButtonElement;
-          const btnZOut      = qs('#zoom-out') as HTMLButtonElement;
-          const btnZReset    = qs('#zoom-reset') as HTMLButtonElement;
-          const zoomInd      = qs('#zoom-indicator') as HTMLElement;
+          const lbImg    = qs('#lightbox-img') as HTMLImageElement;
+          const zoomWrap = qs('#img-zoom-wrapper') as HTMLElement;
+          const counter  = qs('#lightbox-counter') as HTMLElement;
+          const closeBtn = qs('#close-lightbox') as HTMLButtonElement;
+          const prevBtn  = qs('#prev-btn') as HTMLButtonElement;
+          const nextBtn  = qs('#next-btn') as HTMLButtonElement;
+          const btnZIn   = qs('#zoom-in') as HTMLButtonElement;
+          const btnZOut  = qs('#zoom-out') as HTMLButtonElement;
+          const btnZRst  = qs('#zoom-reset') as HTMLButtonElement;
+          const zoomInd  = qs('#zoom-indicator') as HTMLElement;
 
           let imgs: string[] = [];
           let idx = 0;
           let zoom = 1;
 
-          const applyZoom = () => {
-            zoomWrapper.style.transform = `scale(${zoom})`;
-            zoomInd.textContent = `${Math.round(zoom * 100)}%`;
-          };
+          const applyZoom = () => { zoomWrap.style.transform = `scale(${zoom})`; zoomInd.textContent = `${Math.round(zoom * 100)}%`; };
           const resetZoom = () => { zoom = 1; applyZoom(); };
-
           const setImg = () => {
-            lightboxImg.src = imgs[idx];
+            lbImg.src = imgs[idx];
             counter.textContent = `${idx + 1} / ${imgs.length}`;
             resetZoom();
             const single = imgs.length <= 1;
             prevBtn.classList.toggle('hidden', single);
             nextBtn.classList.toggle('hidden', single);
           };
-
-          const open = () => {
-            lightbox.classList.remove('hidden');
-            lightbox.classList.add('flex');
+          const open = (images: string[], startIdx: number) => {
+            imgs = images; idx = startIdx;
+            lightbox.classList.remove('hidden'); lightbox.classList.add('flex');
             document.body.style.overflow = 'hidden';
-            setImg();
-            closeLbBtn.focus();
+            setImg(); closeBtn.focus();
           };
-
           const close = () => {
-            lightbox.classList.add('hidden');
-            lightbox.classList.remove('flex');
-            document.body.style.overflow = '';
-            resetZoom();
+            lightbox.classList.add('hidden'); lightbox.classList.remove('flex');
+            document.body.style.overflow = ''; resetZoom();
           };
 
-          // Delegate click to all .project-image (handles dynamic content)
+          // Project image clicks (lightbox gets ALL images via data-images)
           document.getElementById('projects-container')?.addEventListener('click', e => {
             const target = (e.target as HTMLElement).closest('.project-image') as HTMLImageElement | null;
             if (!target) return;
-            imgs = JSON.parse(target.dataset.images!);
-            idx  = parseInt(target.dataset.index!);
-            open();
+            open(JSON.parse(target.dataset.images!), parseInt(target.dataset.index!));
+          });
+
+          // "See all photos" button
+          document.getElementById('projects-container')?.addEventListener('click', e => {
+            const btn = (e.target as HTMLElement).closest('[data-open-all-images]') as HTMLElement | null;
+            if (!btn) return;
+            open(JSON.parse(btn.dataset.openAllImages!), 0);
           });
 
           nextBtn.addEventListener('click', e => { e.stopPropagation(); idx = (idx + 1) % imgs.length; setImg(); });
           prevBtn.addEventListener('click', e => { e.stopPropagation(); idx = (idx - 1 + imgs.length) % imgs.length; setImg(); });
-          closeLbBtn.addEventListener('click', close);
+          closeBtn.addEventListener('click', close);
+          lightbox.addEventListener('click', e => { if (e.target === lightbox || (e.target as HTMLElement).classList.contains('lightbox-bg')) close(); });
 
-          // Close on backdrop click
-          lightbox.addEventListener('click', e => {
-            if (e.target === lightbox || (e.target as HTMLElement).classList.contains('lightbox-bg')) close();
-          });
+          btnZIn.addEventListener('click',  e => { e.stopPropagation(); zoom = Math.min(zoom + 0.25, 3.5); applyZoom(); });
+          btnZOut.addEventListener('click', e => { e.stopPropagation(); zoom = Math.max(zoom - 0.25, 0.5); applyZoom(); });
+          btnZRst.addEventListener('click', e => { e.stopPropagation(); resetZoom(); });
 
-          // Zoom controls
-          btnZIn.addEventListener('click',    e => { e.stopPropagation(); if (zoom < 3.5) { zoom = Math.min(zoom + 0.25, 3.5); applyZoom(); } });
-          btnZOut.addEventListener('click',   e => { e.stopPropagation(); if (zoom > 0.5) { zoom = Math.max(zoom - 0.25, 0.5); applyZoom(); } });
-          btnZReset.addEventListener('click', e => { e.stopPropagation(); resetZoom(); });
-
-          // Touch swipe on lightbox
-          let touchStartX = 0;
-          lightbox.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+          // Touch swipe
+          let txStart = 0;
+          lightbox.addEventListener('touchstart', e => { txStart = e.touches[0].clientX; }, { passive: true });
           lightbox.addEventListener('touchend', e => {
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            if (Math.abs(dx) > 60 && imgs.length > 1) {
-              dx < 0 ? nextBtn.click() : prevBtn.click();
-            }
+            const dx = e.changedTouches[0].clientX - txStart;
+            if (Math.abs(dx) > 60 && imgs.length > 1) dx < 0 ? nextBtn.click() : prevBtn.click();
           }, { passive: true });
 
-          // Keyboard
           document.addEventListener('keydown', e => {
             if (lightbox.classList.contains('hidden')) return;
-            if (e.key === 'Escape')      close();
-            if (e.key === 'ArrowRight')  nextBtn.click();
-            if (e.key === 'ArrowLeft')   prevBtn.click();
+            if (e.key === 'Escape') close();
+            if (e.key === 'ArrowRight') nextBtn.click();
+            if (e.key === 'ArrowLeft') prevBtn.click();
             if (e.key === '=' || e.key === '+') btnZIn.click();
-            if (e.key === '-')           btnZOut.click();
+            if (e.key === '-') btnZOut.click();
           });
         }
 
-        // ── 8. WA FORM ────────────────────────────────────────────
+        // ── 10. WA FORM ───────────────────────────────────────────
         const waForm = qs('#wa-form') as HTMLFormElement;
         if (waForm) {
           waForm.addEventListener('submit', e => {
@@ -1022,37 +1211,28 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
           });
         }
 
-        // ── 9. CROSSHAIR (desktop only) ───────────────────────────
+        // ── 11. CROSSHAIR (desktop only) ──────────────────────────
         if (isMobile()) return;
-
-        const chH    = qs('#crosshair-h') as HTMLElement;
-        const chV    = qs('#crosshair-v') as HTMLElement;
+        const chH = qs('#crosshair-h') as HTMLElement;
+        const chV = qs('#crosshair-v') as HTMLElement;
         const coords = qs('#cursor-coords') as HTMLElement;
-
         if (!chH || !chV || !coords) return;
 
-        let mX = window.innerWidth / 2,  mY = window.innerHeight / 2;
-        let cX = window.innerWidth / 2,  cY = window.innerHeight / 2;
-        let visible = false;
+        let mX = window.innerWidth / 2, mY = window.innerHeight / 2;
+        let cX = mX, cY = mY;
+        let chVisible = false;
 
         window.addEventListener('mousemove', e => {
           mX = e.clientX; mY = e.clientY;
-          if (!visible) {
-            chH.style.opacity = '1'; chV.style.opacity = '1'; coords.style.opacity = '1';
-            visible = true;
-          }
+          if (!chVisible) { chH.style.opacity='1'; chV.style.opacity='1'; coords.style.opacity='1'; chVisible = true; }
         }, { passive: true });
-
         document.addEventListener('mouseleave', () => {
-          chH.style.opacity = '0'; chV.style.opacity = '0'; coords.style.opacity = '0';
-          visible = false;
+          chH.style.opacity='0'; chV.style.opacity='0'; coords.style.opacity='0'; chVisible = false;
         });
 
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-
         const animCH = () => {
-          cX = lerp(cX, mX, 0.12);
-          cY = lerp(cY, mY, 0.12);
+          cX = lerp(cX, mX, 0.12); cY = lerp(cY, mY, 0.12);
           chH.style.transform = `translate3d(0,${cY}px,0)`;
           chV.style.transform = `translate3d(${cX}px,0,0)`;
           coords.style.transform = `translate3d(${cX + 14}px,${cY + 14}px,0)`;
@@ -1061,14 +1241,8 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
         };
         requestAnimationFrame(animCH);
 
-      }); // end astro:page-load
+      });
     </script>
-
-    <!-- Hide scrollbar utility (inline so it applies globally) -->
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
 
   </body>
 </html>
