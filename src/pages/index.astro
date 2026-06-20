@@ -122,6 +122,18 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
   button, a, .project-image, #close-lightbox, #prev-btn, #next-btn, #music-toggle {
     pointer-events: auto !important;
   }
+
+/* Reset global buat tombol */
+  button, a, img {
+    -webkit-tap-highlight-color: transparent; /* Ilangin kotak biru pas dipencet */
+    touch-action: manipulation;
+  }
+
+  /* FORCE CLICKABILITY */
+  .music-toggle-wrapper, #music-toggle, .project-image, .lightbox {
+    pointer-events: auto !important;
+    z-index: 2147483647 !important; /* Z-index maksimal browser */
+  }
     </style>
   </head>
   <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
