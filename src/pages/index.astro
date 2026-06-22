@@ -58,7 +58,7 @@ const MAX_SCROLL_IMAGES = 3;
       body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
-        overflow-x: clip; /* Cegah overflow dari 3D transform */
+        overflow-x: clip;
       }
       ::-webkit-scrollbar { width: 2px; }
       ::-webkit-scrollbar-track { background: transparent; }
@@ -111,9 +111,7 @@ const MAX_SCROLL_IMAGES = 3;
         animation: marquee 35s linear infinite;
         will-change: transform;
       }
-      @media (prefers-reduced-motion: reduce) {
-        .animate-marquee { animation: none; }
-      }
+      @media (prefers-reduced-motion: reduce) { .animate-marquee { animation: none; } }
 
       #marquee-section {
         border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -166,13 +164,13 @@ const MAX_SCROLL_IMAGES = 3;
       .line-draw.in-view { transform: scaleX(1); }
 
       /* ============================================================
-         3D COVERFLOW SCROLLYTELLING (OPTIMIZED)
+         3D COVERFLOW SCROLLYTELLING (BUTTER SMOOTH LERP)
       ============================================================ */
       .project-section {
         position: relative;
         height: calc(var(--display-count) * 100svh);
         z-index: 1;
-        contain: layout paint style; /* Isolasi mutlak untuk performa */
+        contain: layout paint style;
       }
       
       .project-sticky-view {
@@ -203,7 +201,7 @@ const MAX_SCROLL_IMAGES = 3;
         inset: 0;
         transform-style: preserve-3d;
         z-index: 10;
-        pointer-events: none; /* Hanya kartu aktif yang diklik */
+        pointer-events: none;
       }
       
       .img-3d-card {
@@ -216,11 +214,10 @@ const MAX_SCROLL_IMAGES = 3;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
-        pointer-events: auto;
+        pointer-events: none; /* JS akan atur auto untuk yg aktif */
         backface-visibility: hidden;
         background: #18181b;
-        /* Base transform untuk centering awal */
-        transform: translate(-50%, -50%) translate3d(0,0,-1000px);
+        transform: translate(-50%, -50%) translate3d(60%, 0, -400px) rotateY(45deg) scale(0.9);
         opacity: 0;
         will-change: transform, opacity;
       }
@@ -232,7 +229,6 @@ const MAX_SCROLL_IMAGES = 3;
         pointer-events: none;
       }
       
-      /* Overlay gelap & Gloss untuk kartu non-aktif */
       .img-3d-dim {
         position: absolute;
         inset: 0;
@@ -240,12 +236,10 @@ const MAX_SCROLL_IMAGES = 3;
         backdrop-filter: blur(4px);
         z-index: 2;
         opacity: 1;
-        transition: opacity 0.3s ease;
         pointer-events: none;
       }
-      .img-3d-card[data-active="true"] .img-3d-dim {
-        opacity: 0;
-      }
+      .img-3d-card[data-active="true"] .img-3d-dim { opacity: 0; }
+      
       .img-3d-gloss {
         position: absolute;
         inset: 0;
@@ -254,7 +248,6 @@ const MAX_SCROLL_IMAGES = 3;
         z-index: 3;
       }
 
-      /* Text Panel */
       .text-panel {
         position: absolute;
         bottom: 0;
@@ -286,25 +279,74 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         UI ELEMENTS (DOTS, NAV, ETC)
+         NEW SECTION: 3D PHILOSOPHY TUNNEL
       ============================================================ */
-      #dot-nav {
-        position: fixed; right: 1.25rem; top: 50%;
-        transform: translateY(-50%);
-        display: flex; flex-direction: column; gap: 8px;
-        z-index: 60; pointer-events: none;
+      #philosophy-section {
+        position: relative;
+        height: 250svh;
+        z-index: 2;
+        contain: layout paint style;
       }
+      .philosophy-sticky {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        width: 100%;
+        overflow: hidden;
+        perspective: 800px;
+        background: radial-gradient(circle at center, #0c0c0e 0%, #09090b 100%);
+      }
+      .tunnel-track {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+      .tunnel-word {
+        position: absolute;
+        font-size: 8rem;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(255,255,255,0.2);
+        pointer-events: none;
+        white-space: nowrap;
+        will-change: transform, opacity;
+      }
+      .tunnel-word.solid {
+        color: rgba(255,255,255,0.9);
+        -webkit-text-stroke: 0;
+      }
+      .tunnel-quote {
+        position: absolute;
+        bottom: 15%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        z-index: 50;
+        pointer-events: none;
+      }
+      @media (max-width: 767px) {
+        .tunnel-word { font-size: 4rem; }
+        .tunnel-quote { font-size: 0.8rem; bottom: 10%; }
+      }
+
+      /* ============================================================
+         UI ELEMENTS
+      ============================================================ */
+      #dot-nav { position: fixed; right: 1.25rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 60; pointer-events: none; }
       @media (max-width: 767px) { #dot-nav { display: none; } }
-      .dot-nav-item {
-        width: 4px; height: 4px; border-radius: 50%;
-        background: rgba(255,255,255,0.18);
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        pointer-events: auto; cursor: pointer;
-      }
-      .dot-nav-item.active {
-        background: rgba(255,255,255,0.9);
-        height: 18px; border-radius: 2px;
-      }
+      .dot-nav-item { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; cursor: pointer; }
+      .dot-nav-item.active { background: rgba(255,255,255,0.9); height: 18px; border-radius: 2px; }
       .project-counter { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 
       #crosshair-h, #crosshair-v { position: fixed; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 0.5s; will-change: transform; }
@@ -386,14 +428,14 @@ const MAX_SCROLL_IMAGES = 3;
         nav#filter-nav { padding-left: max(1.5rem, env(safe-area-inset-left)); padding-right: max(1.5rem, env(safe-area-inset-right)); }
       }
 
-      /* FALLBACK: REDUCED MOTION */
       @media (prefers-reduced-motion: reduce) {
-        .project-section { height: auto; contain: none; }
-        .project-sticky-view { position: relative; height: auto; display: block; perspective: none; }
+        .project-section, #philosophy-section { height: auto; contain: none; }
+        .project-sticky-view, .philosophy-sticky { position: relative; height: auto; display: block; perspective: none; }
         .image-3d-container { position: relative; transform: none; display: flex; flex-direction: column; gap: 1rem; padding: 2rem; pointer-events: auto; }
         .img-3d-card { position: relative; transform: none !important; top: auto; left: auto; width: 90%; height: 400px; opacity: 1 !important; margin: 0 auto; }
         .img-3d-dim { display: none; }
         .text-panel { position: relative; background: none; height: auto; padding: 2rem; }
+        .tunnel-track { transform: none !important; height: 100vh; }
       }
     </style>
   </head>
@@ -499,10 +541,7 @@ const MAX_SCROLL_IMAGES = 3;
 
               <div class="image-3d-container">
                 {displayImages.map((url: string, imgIndex: number) => (
-                  <div 
-                    class="img-3d-card" 
-                    data-img-index={imgIndex}
-                  >
+                  <div class="img-3d-card" data-img-index={imgIndex}>
                     <img
                       src={url}
                       alt={`${project.title} - foto ${imgIndex + 1}`}
@@ -558,6 +597,21 @@ const MAX_SCROLL_IMAGES = 3;
         );
       })}
     </main>
+
+    <!-- NEW CREATIVE SECTION: 3D TUNNEL -->
+    <section id="philosophy-section">
+      <div class="philosophy-sticky">
+        <div class="tunnel-track" id="tunnel-track">
+          <span class="tunnel-word" style="transform: translate3d(0,0,0px)">VISION</span>
+          <span class="tunnel-word solid" style="transform: translate3d(0,0,800px)">PRECISION</span>
+          <span class="tunnel-word" style="transform: translate3d(0,0,1600px)">CULTURE</span>
+          <span class="tunnel-word solid" style="transform: translate3d(0,0,2400px)">CODE</span>
+        </div>
+        <div class="tunnel-quote">
+          "Desain bukan hanya tentang bagaimana terlihat, tapi tentang bagaimana berfungsi. Kode adalah puisi logis yang menghidupkan ide."
+        </div>
+      </div>
+    </section>
 
     <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
       <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
@@ -670,37 +724,18 @@ const MAX_SCROLL_IMAGES = 3;
         const isMobile = () => window.innerWidth < 768;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // ── 1. SCROLL PROGRESS ────────────────────────────────────
+        // ── 1. HEADER & SCROLL STATE ──────────────────────────────
         const progressBar = qs('#scroll-progress') as HTMLElement;
-        if (progressBar) {
-          let scrollTicking = false;
-          const update = () => {
-            const max = document.documentElement.scrollHeight - window.innerHeight;
-            progressBar.style.width = max > 0 ? `${(window.scrollY / max) * 100}%` : '0%';
-            scrollTicking = false;
-          };
-          window.addEventListener('scroll', () => {
-            if (!scrollTicking) { requestAnimationFrame(update); scrollTicking = true; }
-          }, { passive: true });
-          update();
-        }
-
-        // ── 2. HEADER scroll state ────────────────────────────────
         const siteHeader = qs('#site-header') as HTMLElement;
-        if (siteHeader) {
-          const onScroll = () => siteHeader.classList.toggle('scrolled', window.scrollY > 40);
-          window.addEventListener('scroll', onScroll, { passive: true });
-          onScroll();
-        }
-
-        // ── 3. REVEAL OBSERVER ────────────────────────────────────
+        
+        // ── 2. REVEAL OBSERVER ────────────────────────────────────
         const revealObs = new IntersectionObserver(
           entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); revealObs.unobserve(e.target); } }),
           { rootMargin: '0px 0px -60px 0px', threshold: 0.1 }
         );
         qsa('.reveal-up, .reveal-right, .line-draw').forEach(el => revealObs.observe(el));
 
-        // ── 4. DOT NAV ────────────────────────────────────────────
+        // ── 3. DOT NAV ────────────────────────────────────────────
         const dots     = qsa('.dot-nav-item');
         const sections = qsa('.project-section');
         if (dots.length && sections.length) {
@@ -721,7 +756,7 @@ const MAX_SCROLL_IMAGES = 3;
           sections.forEach(s => dotObs.observe(s));
         }
 
-        // ── 5. FILTER ─────────────────────────────────────────────
+        // ── 4. FILTER ─────────────────────────────────────────────
         const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
         const scrollBtnIntoView = (btn: HTMLElement) => {
           const track = qs('#filter-nav-track') as HTMLElement;
@@ -737,26 +772,33 @@ const MAX_SCROLL_IMAGES = 3;
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
             s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'block' : 'none';
           });
-          cache3DSections(); // Re-cache setelah filter berubah
+          cache3DSections();
         };
         filterBtns.forEach(btn => btn.addEventListener('click', () => setActiveFilter(btn)));
         const initActive = qs('.filter-btn[data-active="true"]') as HTMLElement | null;
         if (initActive) requestAnimationFrame(() => scrollBtnIntoView(initActive));
 
-        // ── 6. 3D SCROLLYTELLING ENGINE (MAX PERFORMANCE) ────────
+        // ── 5. GLOBAL ANIMATION ENGINE (Butter Smooth Lerp) ───────
         let sections3DData: { el: HTMLElement; top: number; height: number; cards: HTMLElement[]; dots: HTMLElement[] }[] = [];
-        let active3DSection = null;
+        let currentFocus = -1;
+        let lastActiveEl: HTMLElement | null = null;
         
+        // Philosophy Tunnel Vars
+        const tunnelSection = qs('#philosophy-section') as HTMLElement;
+        const tunnelTrack = qs('#tunnel-track') as HTMLElement;
+
         const cache3DSections = () => {
           sections3DData = [];
           qsa('.project-section').forEach(sec => {
-            sections3DData.push({
-              el: sec as HTMLElement,
-              top: sec.offsetTop,
-              height: sec.offsetHeight,
-              cards: Array.from(sec.querySelectorAll('.img-3d-card')) as HTMLElement[],
-              dots: Array.from(sec.querySelectorAll('[data-dot-i]')) as HTMLElement[]
-            });
+            if (sec.style.display !== 'none') {
+              sections3DData.push({
+                el: sec as HTMLElement,
+                top: sec.offsetTop,
+                height: sec.offsetHeight,
+                cards: Array.from(sec.querySelectorAll('.img-3d-card')) as HTMLElement[],
+                dots: Array.from(sec.querySelectorAll('[data-dot-i]')) as HTMLElement[]
+              });
+            }
           });
         };
         cache3DSections();
@@ -767,70 +809,78 @@ const MAX_SCROLL_IMAGES = 3;
           resizeTimer = setTimeout(cache3DSections, 250);
         }, { passive: true });
 
-        // Observer untuk mendeteksi section mana yang sedang aktif
-        const activeSectionObs = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              active3DSection = sections3DData.find(d => d.el === entry.target);
-            } else {
-              // Jika keluar, reset semua kartu di section tersebut agar tidak boros GPU
-              const data = sections3DData.find(d => d.el === entry.target);
-              if (data && active3DSection === data) {
-                active3DSection = null;
-              }
+        const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+        const updateEngine = () => {
+          const scrollY = window.scrollY;
+          const winH = window.innerHeight;
+          
+          // Progress Bar
+          const max = document.documentElement.scrollHeight - winH;
+          if (progressBar) progressBar.style.width = max > 0 ? `${(scrollY / max) * 100}%` : '0%';
+          
+          if (siteHeader) siteHeader.classList.toggle('scrolled', scrollY > 40);
+
+          // 3D Carousel Engine
+          let activeData = null;
+          for (let d of sections3DData) {
+            const rect = d.el.getBoundingClientRect();
+            if (rect.top <= 0 && rect.bottom >= winH) {
+              activeData = d;
+              break;
             }
-          });
-        }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+          }
 
-        sections3DData.forEach(d => activeSectionObs.observe(d.el));
-
-        let scroll3DTicking = false;
-        const update3DScroll = () => {
-          if (active3DSection) {
-            const { top, height, cards, dots } = active3DSection;
-            const winH = window.innerHeight;
-            const scrollable = Math.max(height - winH, 1);
-            const progress = Math.max(0, Math.min(1, (window.scrollY - top) / scrollable));
+          if (activeData) {
+            if (lastActiveEl !== activeData.el) {
+              currentFocus = -1; // Reset focus ke awal saat masuk section baru
+              lastActiveEl = activeData.el;
+            }
             
-            const N = cards.length;
-            const focus = progress * (N - 1);
-            let activeDotIndex = 0;
+            const rect = activeData.el.getBoundingClientRect();
+            const scrollable = Math.max(activeData.height - winH, 1);
+            const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
+            const targetFocus = progress * (activeData.cards.length - 1);
+            
+            currentFocus = lerp(currentFocus, targetFocus, 0.12); // Lerp untuk kehalusan
+            
             const isMobileView = isMobile();
-
-            cards.forEach((card, i) => {
-              const dist = i - focus; 
+            let activeDotIndex = 0;
+            
+            activeData.cards.forEach((card, i) => {
+              const dist = i - currentFocus;
               const absDist = Math.abs(dist);
               
-              if (absDist > 1.2) {
-                card.style.opacity = '0';
-                card.style.pointerEvents = 'none';
-                card.dataset.active = "false";
+              if (absDist > 1.5) {
+                if (card.style.opacity !== '0') {
+                  card.style.opacity = '0';
+                  card.style.pointerEvents = 'none';
+                  card.dataset.active = "false";
+                }
                 return;
               }
 
-              // Konfigurasi Coverflow 3D
-              const xMove = dist * (isMobileView ? 50 : 65); // Persentase geser
-              const zMove = -absDist * (isMobileView ? 150 : 250); // Kedalaman Z
-              const rotY = dist * (isMobileView ? -30 : -35); // Rotasi derajat
-              const opacity = 1 - absDist * 0.6;
-              const scale = 1 - absDist * 0.08;
+              const xMove = dist * (isMobileView ? 55 : 65);
+              const zMove = -absDist * (isMobileView ? 200 : 300);
+              const rotY = dist * (isMobileView ? -35 : -40);
+              const opacity = 1 - absDist * 0.5;
+              const scale = 1 - absDist * 0.1;
 
               card.style.transform = `translate(-50%, -50%) translate3d(${xMove}%, 0, ${zMove}px) rotateY(${rotY}deg) scale(${scale})`;
               card.style.opacity = opacity.toString();
               card.style.zIndex = (100 - Math.round(absDist * 10)).toString();
               
-              if (absDist < 0.5) {
-                card.dataset.active = "true";
+              const isActive = absDist < 0.5;
+              card.dataset.active = isActive ? "true" : "false";
+              if (isActive) {
                 card.style.pointerEvents = "auto";
                 activeDotIndex = i;
               } else {
-                card.dataset.active = "false";
                 card.style.pointerEvents = "none";
               }
             });
 
-            // Update dots
-            dots.forEach((dot, i) => {
+            activeData.dots.forEach((dot, i) => {
               if (i === activeDotIndex) {
                 dot.classList.remove('bg-white/20', 'w-1');
                 dot.classList.add('bg-white/60', 'w-3');
@@ -839,21 +889,40 @@ const MAX_SCROLL_IMAGES = 3;
                 dot.classList.add('bg-white/20', 'w-1');
               }
             });
+          } else {
+            lastActiveEl = null;
           }
-          scroll3DTicking = false;
+
+          // 3D Tunnel Engine (Philosophy Section)
+          if (tunnelSection && tunnelTrack && !prefersReducedMotion) {
+            const tRect = tunnelSection.getBoundingClientRect();
+            if (tRect.top <= 0 && tRect.bottom >= 0) {
+              const scrollable = tunnelSection.offsetHeight - winH;
+              const progress = Math.max(0, Math.min(1, -tRect.top / scrollable));
+              // Bergerak dari 400px (dekat) ke -2000px (jauh menembus kamera)
+              const z = 400 - (progress * 2400);
+              tunnelTrack.style.transform = `translate3d(0, 0, ${z}px)`;
+              tunnelTrack.style.opacity = (1 - progress * 0.8).toString();
+            }
+          }
+
+          requestAnimationFrame(updateEngine);
         };
 
         if (!prefersReducedMotion) {
-          window.addEventListener('scroll', () => {
-            if (!scroll3DTicking) {
-              requestAnimationFrame(update3DScroll);
-              scroll3DTicking = true;
-            }
-          }, { passive: true });
-          requestAnimationFrame(update3DScroll);
+          requestAnimationFrame(updateEngine);
+        } else {
+          // Fallback untuk reduced motion
+          const update = () => {
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            if (progressBar) progressBar.style.width = max > 0 ? `${(window.scrollY / max) * 100}%` : '0%';
+            if (siteHeader) siteHeader.classList.toggle('scrolled', window.scrollY > 40);
+          };
+          window.addEventListener('scroll', update, { passive: true });
+          update();
         }
 
-        // ── 7. MUSIC ──────────────────────────────────────────────
+        // ── 6. MUSIC ──────────────────────────────────────────────
         const bgMusic     = qs('#bg-music') as HTMLAudioElement;
         const musicToggle = qs('#music-toggle') as HTMLButtonElement;
         const iconPlay    = qs('#music-icon-play');
@@ -875,7 +944,7 @@ const MAX_SCROLL_IMAGES = 3;
           });
         }
 
-        // ── 8. BACK TO TOP ────────────────────────────────────────
+        // ── 7. BACK TO TOP ────────────────────────────────────────
         const btt = qs('#back-to-top') as HTMLButtonElement;
         if (btt) {
           const toggleBtt = () => btt.classList.toggle('visible', window.scrollY > 400);
@@ -884,7 +953,7 @@ const MAX_SCROLL_IMAGES = 3;
           toggleBtt();
         }
 
-        // ── 9. LIGHTBOX ───────────────────────────────────────────
+        // ── 8. LIGHTBOX ───────────────────────────────────────────
         const lightbox = qs('#lightbox') as HTMLElement;
         if (lightbox) {
           const lbImg    = qs('#lightbox-img') as HTMLImageElement;
@@ -963,7 +1032,7 @@ const MAX_SCROLL_IMAGES = 3;
           });
         }
 
-        // ── 10. WA FORM ───────────────────────────────────────────
+        // ── 9. WA FORM ───────────────────────────────────────────
         const waForm = qs('#wa-form') as HTMLFormElement;
         if (waForm) {
           waForm.addEventListener('submit', e => {
@@ -977,8 +1046,8 @@ const MAX_SCROLL_IMAGES = 3;
           });
         }
 
-        // ── 11. CROSSHAIR (desktop only) ──────────────────────────
-        if (isMobile()) return;
+        // ── 10. CROSSHAIR (desktop only) ──────────────────────────
+        if (isMobile() || prefersReducedMotion) return;
         const chH = qs('#crosshair-h') as HTMLElement;
         const chV = qs('#crosshair-v') as HTMLElement;
         const coords = qs('#cursor-coords') as HTMLElement;
@@ -996,9 +1065,8 @@ const MAX_SCROLL_IMAGES = 3;
           chH.style.opacity='0'; chV.style.opacity='0'; coords.style.opacity='0'; chVisible = false;
         });
 
-        const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
         const animCH = () => {
-          cX = lerp(cX, mX, 0.12); cY = lerp(cY, mY, 0.12);
+          cX = lerp(cX, mX, 0.15); cY = lerp(cY, mY, 0.15);
           chH.style.transform = `translate3d(0,${cY}px,0)`;
           chV.style.transform = `translate3d(${cX}px,0,0)`;
           coords.style.transform = `translate3d(${cX + 14}px,${cY + 14}px,0)`;
