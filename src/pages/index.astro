@@ -22,7 +22,6 @@ const ogImage = projects && projects.length > 0 && projects[0].image_urls && pro
   ? projects[0].image_urls[0] 
   : new URL('/og-image.png', Astro.url.origin).href;
 
-// Helper: max 3 images shown in scrollytelling, full set in lightbox
 const MAX_SCROLL_IMAGES = 3;
 ---
 
@@ -48,7 +47,7 @@ const MAX_SCROLL_IMAGES = 3;
 
     <style>
       /* ============================================================
-         BASE
+         BASE & PERFORMANCE
       ============================================================ */
       *, *::before, *::after { box-sizing: border-box; }
       html {
@@ -59,7 +58,7 @@ const MAX_SCROLL_IMAGES = 3;
       body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
-        overflow-x: clip; /* Mencegah overflow horizontal dari 3D transform */
+        overflow-x: clip; /* Cegah overflow dari 3D transform */
       }
       ::-webkit-scrollbar { width: 2px; }
       ::-webkit-scrollbar-track { background: transparent; }
@@ -73,7 +72,7 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         SCROLL PROGRESS BAR UPGRADED
+         SCROLL PROGRESS BAR
       ============================================================ */
       #scroll-progress {
         position: fixed;
@@ -131,39 +130,25 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         REVEAL ANIMATIONS WITH BLUR EFFECT
+         REVEAL ANIMATIONS
       ============================================================ */
       .reveal-up {
         opacity: 0;
         filter: blur(8px);
         transform: translateY(32px);
-        transition:
-          opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-          filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: transform, opacity, filter;
       }
-      .reveal-up.in-view {
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-      }
+      .reveal-up.in-view { opacity: 1; transform: translateY(0); filter: blur(0); }
 
       .reveal-right {
         opacity: 0;
         filter: blur(8px);
         transform: translateX(40px);
-        transition:
-          opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 1s cubic-bezier(0.16, 1, 0.3, 1),
-          filter 1s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 1s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: transform, opacity, filter;
       }
-      .reveal-right.in-view {
-        opacity: 1;
-        transform: translateX(0);
-        filter: blur(0);
-      }
+      .reveal-right.in-view { opacity: 1; transform: translateX(0); filter: blur(0); }
 
       .delay-50  { transition-delay: 50ms; }
       .delay-100 { transition-delay: 100ms; }
@@ -181,21 +166,23 @@ const MAX_SCROLL_IMAGES = 3;
       .line-draw.in-view { transform: scaleX(1); }
 
       /* ============================================================
-         3D SCROLLYTELLING PROJECTS SECTION
+         3D COVERFLOW SCROLLYTELLING (OPTIMIZED)
       ============================================================ */
       .project-section {
         position: relative;
         height: calc(var(--display-count) * 100svh);
         z-index: 1;
+        contain: layout paint style; /* Isolasi mutlak untuk performa */
       }
+      
       .project-sticky-view {
         position: sticky;
         top: 0;
         height: 100svh;
         width: 100%;
         overflow: hidden;
-        perspective: 1400px;
-        perspective-origin: center 40%;
+        perspective: 1200px;
+        perspective-origin: center 45%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -216,7 +203,7 @@ const MAX_SCROLL_IMAGES = 3;
         inset: 0;
         transform-style: preserve-3d;
         z-index: 10;
-        pointer-events: none; /* Hanya kartu aktif yang bisa diklik */
+        pointer-events: none; /* Hanya kartu aktif yang diklik */
       }
       
       .img-3d-card {
@@ -226,15 +213,16 @@ const MAX_SCROLL_IMAGES = 3;
         width: 85%;
         max-width: 550px;
         height: 65%;
-        transform: translate(-50%, -50%); /* Base transform */
-        will-change: transform, opacity;
-        transform-style: preserve-3d;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
         pointer-events: auto;
         backface-visibility: hidden;
         background: #18181b;
+        /* Base transform untuk centering awal */
+        transform: translate(-50%, -50%) translate3d(0,0,-1000px);
+        opacity: 0;
+        will-change: transform, opacity;
       }
       
       .img-3d-card img {
@@ -244,15 +232,29 @@ const MAX_SCROLL_IMAGES = 3;
         pointer-events: none;
       }
       
+      /* Overlay gelap & Gloss untuk kartu non-aktif */
+      .img-3d-dim {
+        position: absolute;
+        inset: 0;
+        background: rgba(9, 9, 11, 0.85);
+        backdrop-filter: blur(4px);
+        z-index: 2;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      .img-3d-card[data-active="true"] .img-3d-dim {
+        opacity: 0;
+      }
       .img-3d-gloss {
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.2) 100%);
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.3) 100%);
         pointer-events: none;
-        z-index: 5;
+        z-index: 3;
       }
 
-      /* Text Panel Layout */
+      /* Text Panel */
       .text-panel {
         position: absolute;
         bottom: 0;
@@ -265,7 +267,7 @@ const MAX_SCROLL_IMAGES = 3;
       }
       @media (min-width: 768px) {
         .img-3d-card {
-          left: 65%; /* Shift ke kanan karena teks di kiri */
+          left: 65%;
           max-width: 600px;
           height: 70%;
         }
@@ -284,80 +286,42 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         DOT NAV & OTHER UI
+         UI ELEMENTS (DOTS, NAV, ETC)
       ============================================================ */
       #dot-nav {
-        position: fixed;
-        right: 1.25rem;
-        top: 50%;
+        position: fixed; right: 1.25rem; top: 50%;
         transform: translateY(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 60;
-        pointer-events: none;
+        display: flex; flex-direction: column; gap: 8px;
+        z-index: 60; pointer-events: none;
       }
       @media (max-width: 767px) { #dot-nav { display: none; } }
       .dot-nav-item {
-        width: 4px; height: 4px;
-        border-radius: 50%;
+        width: 4px; height: 4px; border-radius: 50%;
         background: rgba(255,255,255,0.18);
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        pointer-events: auto;
-        cursor: pointer;
+        pointer-events: auto; cursor: pointer;
       }
       .dot-nav-item.active {
         background: rgba(255,255,255,0.9);
-        height: 18px;
-        border-radius: 2px;
+        height: 18px; border-radius: 2px;
       }
-
       .project-counter { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 
-      #crosshair-h, #crosshair-v {
-        position: fixed; pointer-events: none; z-index: 10;
-        opacity: 0; transition: opacity 0.5s; will-change: transform;
-      }
+      #crosshair-h, #crosshair-v { position: fixed; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 0.5s; will-change: transform; }
       #crosshair-h { left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent); }
       #crosshair-v { top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent); }
-      #cursor-coords {
-        position: fixed; pointer-events: none; z-index: 10;
-        font-family: 'Courier New', monospace; font-size: 9px;
-        color: rgba(255,255,255,0.3); opacity: 0; transition: opacity 0.3s;
-        letter-spacing: 0.1em; will-change: transform;
-      }
+      #cursor-coords { position: fixed; pointer-events: none; z-index: 10; font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255,255,255,0.3); opacity: 0; transition: opacity 0.3s; letter-spacing: 0.1em; will-change: transform; }
 
       #filter-nav { top: 56px; }
       #filter-nav-track { position: relative; }
-      #filter-nav-indicator {
-        position: absolute; bottom: 0; height: 2px;
-        background: rgba(255,255,255,0.9); border-radius: 1px;
-        transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s;
-        pointer-events: none; will-change: left, width;
-      }
-      .filter-btn {
-        position: relative; overflow: hidden; isolation: isolate;
-        transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s;
-      }
+      #filter-nav-indicator { position: absolute; bottom: 0; height: 2px; background: rgba(255,255,255,0.9); border-radius: 1px; transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s; pointer-events: none; will-change: left, width; }
+      .filter-btn { position: relative; overflow: hidden; isolation: isolate; transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s; }
       .filter-btn:active { transform: scale(0.95); }
-      .filter-btn::before {
-        content: ''; position: absolute; inset: 0;
-        background: rgba(255,255,255,0.05); opacity: 0;
-        transition: opacity 0.25s; border-radius: inherit;
-      }
+      .filter-btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.05); opacity: 0; transition: opacity 0.25s; border-radius: inherit; }
       .filter-btn:hover::before { opacity: 1; }
       .filter-btn[data-active="true"] { box-shadow: 0 0 12px rgba(255,255,255,0.15); }
 
-      #site-header {
-        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-        padding: 0 1.5rem; height: 56px;
-        display: flex; align-items: center; justify-content: space-between;
-        background: rgba(9,9,11,0.72);
-        backdrop-filter: blur(20px) saturate(150%);
-        -webkit-backdrop-filter: blur(20px) saturate(150%);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        transition: background 0.4s, border-color 0.4s;
-      }
+      #site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; background: rgba(9,9,11,0.72); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.4s, border-color 0.4s; }
       #site-header.scrolled { background: rgba(9,9,11,0.92); border-bottom-color: rgba(255,255,255,0.08); }
       .header-logo { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-decoration: none; transition: color 0.2s; }
       .header-logo:hover { color: white; }
@@ -370,55 +334,27 @@ const MAX_SCROLL_IMAGES = 3;
       .header-cta:active { transform: scale(0.96); }
       @media (max-width: 767px) { .header-links .header-link { display: none; } }
 
-      .glass-input {
-        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.875rem; color: white;
-        width: 100%; outline: none; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; -webkit-appearance: none;
-      }
+      .glass-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.875rem; color: white; width: 100%; outline: none; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; -webkit-appearance: none; }
       .glass-input::placeholder { color: rgba(255,255,255,0.25); }
       .glass-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
-      .btn-submit {
-        position: relative; overflow: hidden; isolation: isolate;
-        background: white; color: black; font-weight: 700; font-size: 0.875rem;
-        padding: 1rem; border-radius: 12px; width: 100%;
-        transition: background 0.3s, transform 0.2s, box-shadow 0.3s; cursor: pointer; border: none;
-      }
+      .btn-submit { position: relative; overflow: hidden; isolation: isolate; background: white; color: black; font-weight: 700; font-size: 0.875rem; padding: 1rem; border-radius: 12px; width: 100%; transition: background 0.3s, transform 0.2s, box-shadow 0.3s; cursor: pointer; border: none; }
       .btn-submit:hover { background: #e5e5e5; box-shadow: 0 0 32px rgba(255,255,255,0.25); }
       .btn-submit:active { transform: scale(0.98); }
-      .btn-submit::before {
-        content: ''; position: absolute; inset: 0;
-        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-        transform: translateX(-100%); transition: transform 0.6s;
-      }
+      .btn-submit::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); transform: translateX(-100%); transition: transform 0.6s; }
       .btn-submit:hover::before { transform: translateX(100%); }
 
       #lightbox { contain: layout style; }
       .lightbox-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
-      .fab-container {
-        position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
-        display: flex; flex-direction: column; gap: 0.75rem; align-items: center;
-      }
-      @media (min-width: 768px) {
-        .fab-container { bottom: 2.5rem; right: 2.5rem; }
-      }
-      .fab {
-        width: 44px; height: 44px; border-radius: 50%;
-        background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
-        display: flex; align-items: center; justify-content: center; cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-      }
+      .fab-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
+      @media (min-width: 768px) { .fab-container { bottom: 2.5rem; right: 2.5rem; } }
+      .fab { width: 44px; height: 44px; border-radius: 50%; background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       @media (min-width: 768px) { .fab { width: 48px; height: 48px; } }
       .fab:hover { background: white; color: black; box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: translateY(-2px); }
       .fab:active { transform: scale(0.9); }
       .fab#back-to-top { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
       .fab#back-to-top.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-      .fab#music-toggle.playing::after {
-        content: ''; position: absolute; inset: -4px; border-radius: 50%;
-        border: 1px solid rgba(255,255,255,0.4); animation: pulse-ring 1.5s ease-out infinite;
-      }
+      .fab#music-toggle.playing::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); animation: pulse-ring 1.5s ease-out infinite; }
       @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 
       #site-footer { position: relative; z-index: 50; background: #09090b; border-top: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
@@ -452,10 +388,11 @@ const MAX_SCROLL_IMAGES = 3;
 
       /* FALLBACK: REDUCED MOTION */
       @media (prefers-reduced-motion: reduce) {
-        .project-section { height: auto; }
+        .project-section { height: auto; contain: none; }
         .project-sticky-view { position: relative; height: auto; display: block; perspective: none; }
         .image-3d-container { position: relative; transform: none; display: flex; flex-direction: column; gap: 1rem; padding: 2rem; pointer-events: auto; }
         .img-3d-card { position: relative; transform: none !important; top: auto; left: auto; width: 90%; height: 400px; opacity: 1 !important; margin: 0 auto; }
+        .img-3d-dim { display: none; }
         .text-panel { position: relative; background: none; height: auto; padding: 2rem; }
       }
     </style>
@@ -560,13 +497,11 @@ const MAX_SCROLL_IMAGES = 3;
             <div class="project-sticky-view">
               <div class="project-bg-glow"></div>
 
-              {/* 3D IMAGE LAYER */}
               <div class="image-3d-container">
                 {displayImages.map((url: string, imgIndex: number) => (
                   <div 
                     class="img-3d-card" 
                     data-img-index={imgIndex}
-                    style={`transform: translate(-50%, -50%) translateZ(${imgIndex === 0 ? 0 : -500}px);`}
                   >
                     <img
                       src={url}
@@ -578,12 +513,12 @@ const MAX_SCROLL_IMAGES = 3;
                       decoding="async"
                       fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'}
                     />
+                    <div class="img-3d-dim"></div>
                     <div class="img-3d-gloss"></div>
                   </div>
                 ))}
               </div>
 
-              {/* TEXT PANEL LAYER */}
               <div class="text-panel">
                 <div class="w-full max-w-lg pointer-events-auto relative">
                   <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
@@ -808,8 +743,9 @@ const MAX_SCROLL_IMAGES = 3;
         const initActive = qs('.filter-btn[data-active="true"]') as HTMLElement | null;
         if (initActive) requestAnimationFrame(() => scrollBtnIntoView(initActive));
 
-        // ── 6. 3D SCROLLYTELLING ENGINE ───────────────────────────
+        // ── 6. 3D SCROLLYTELLING ENGINE (MAX PERFORMANCE) ────────
         let sections3DData: { el: HTMLElement; top: number; height: number; cards: HTMLElement[]; dots: HTMLElement[] }[] = [];
+        let active3DSection = null;
         
         const cache3DSections = () => {
           sections3DData = [];
@@ -824,61 +760,78 @@ const MAX_SCROLL_IMAGES = 3;
           });
         };
         cache3DSections();
-        window.addEventListener('resize', cache3DSections, { passive: true });
+        
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(cache3DSections, 250);
+        }, { passive: true });
+
+        // Observer untuk mendeteksi section mana yang sedang aktif
+        const activeSectionObs = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              active3DSection = sections3DData.find(d => d.el === entry.target);
+            } else {
+              // Jika keluar, reset semua kartu di section tersebut agar tidak boros GPU
+              const data = sections3DData.find(d => d.el === entry.target);
+              if (data && active3DSection === data) {
+                active3DSection = null;
+              }
+            }
+          });
+        }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+
+        sections3DData.forEach(d => activeSectionObs.observe(d.el));
 
         let scroll3DTicking = false;
         const update3DScroll = () => {
-          const winH = window.innerHeight;
-          const scrollY = window.scrollY;
-          const isMobileView = isMobile();
-
-          sections3DData.forEach(data => {
-            if (data.el.style.display === 'none') return;
-            
-            const { top, height, cards, dots } = data;
-            // Skip jika di luar viewport
-            if (scrollY + winH < top || scrollY > top + height) { scroll3DTicking = false; return; }
-            
+          if (active3DSection) {
+            const { top, height, cards, dots } = active3DSection;
+            const winH = window.innerHeight;
             const scrollable = Math.max(height - winH, 1);
-            const progress = Math.max(0, Math.min(1, (scrollY - top) / scrollable));
-            const N = cards.length;
+            const progress = Math.max(0, Math.min(1, (window.scrollY - top) / scrollable));
             
-            let activeIndex = 0;
+            const N = cards.length;
+            const focus = progress * (N - 1);
+            let activeDotIndex = 0;
+            const isMobileView = isMobile();
 
             cards.forEach((card, i) => {
-              const focus = progress * (N - 1);
               const dist = i - focus; 
               const absDist = Math.abs(dist);
               
-              // Tentukan index aktif untuk dots
-              if (absDist < 0.5) activeIndex = i;
-
-              // Jika lebih dari 1.5 jauhnya, sembunyikan untuk hemat performa
-              if (absDist > 1.5) {
+              if (absDist > 1.2) {
                 card.style.opacity = '0';
                 card.style.pointerEvents = 'none';
+                card.dataset.active = "false";
                 return;
               }
 
-              // Konfigurasi 3D berbeda untuk mobile & desktop
-              const zTranslation = -absDist * (isMobileView ? 250 : 400);
-              const yRotation = dist * (isMobileView ? 20 : 30);
-              const xTranslation = dist * (isMobileView ? 50 : 100);
-              const opacity = Math.max(0, 1 - absDist * 0.6);
-              const scale = 1 - absDist * 0.05;
+              // Konfigurasi Coverflow 3D
+              const xMove = dist * (isMobileView ? 50 : 65); // Persentase geser
+              const zMove = -absDist * (isMobileView ? 150 : 250); // Kedalaman Z
+              const rotY = dist * (isMobileView ? -30 : -35); // Rotasi derajat
+              const opacity = 1 - absDist * 0.6;
+              const scale = 1 - absDist * 0.08;
 
-              // Base transform harus maintain translate(-50%, -50%) agar tetap di tengah
-              card.style.transform = `translate(-50%, -50%) translate3d(${xTranslation}px, 0, ${zTranslation}px) rotateY(${yRotation}deg) scale(${scale})`;
+              card.style.transform = `translate(-50%, -50%) translate3d(${xMove}%, 0, ${zMove}px) rotateY(${rotY}deg) scale(${scale})`;
               card.style.opacity = opacity.toString();
               card.style.zIndex = (100 - Math.round(absDist * 10)).toString();
               
-              // Hanya kartu aktif yang bisa diklik
-              card.style.pointerEvents = absDist < 0.5 ? 'auto' : 'none';
+              if (absDist < 0.5) {
+                card.dataset.active = "true";
+                card.style.pointerEvents = "auto";
+                activeDotIndex = i;
+              } else {
+                card.dataset.active = "false";
+                card.style.pointerEvents = "none";
+              }
             });
 
-            // Update dots di text panel
+            // Update dots
             dots.forEach((dot, i) => {
-              if (i === activeIndex) {
+              if (i === activeDotIndex) {
                 dot.classList.remove('bg-white/20', 'w-1');
                 dot.classList.add('bg-white/60', 'w-3');
               } else {
@@ -886,7 +839,7 @@ const MAX_SCROLL_IMAGES = 3;
                 dot.classList.add('bg-white/20', 'w-1');
               }
             });
-          });
+          }
           scroll3DTicking = false;
         };
 
@@ -897,7 +850,6 @@ const MAX_SCROLL_IMAGES = 3;
               scroll3DTicking = true;
             }
           }, { passive: true });
-          // Initial trigger
           requestAnimationFrame(update3DScroll);
         }
 
