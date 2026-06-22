@@ -47,7 +47,7 @@ const MAX_SCROLL_IMAGES = 3;
 
     <style>
       /* ============================================================
-         PRELOADER (Cinematic Loading)
+         PRELOADER
       ============================================================ */
       #preloader {
         position: fixed; inset: 0; z-index: 10000; background: #09090b;
@@ -76,7 +76,7 @@ const MAX_SCROLL_IMAGES = 3;
       a, button, [role="button"] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
       /* ============================================================
-         CUSTOM CURSOR (Instant & Snappy)
+         CUSTOM CURSOR
       ============================================================ */
       @media (hover: hover) and (pointer: fine) {
         body { cursor: none; }
@@ -91,9 +91,7 @@ const MAX_SCROLL_IMAGES = 3;
         width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.3); margin: -16px 0 0 -16px;
         transition: width 0.3s, height 0.3s, margin 0.3s, background 0.3s, border-color 0.3s;
       }
-      #cursor-ring.hovering {
-        width: 60px; height: 60px; margin: -30px 0 0 -30px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6);
-      }
+      #cursor-ring.hovering { width: 60px; height: 60px; margin: -30px 0 0 -30px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
 
       /* ============================================================
          SCROLL PROGRESS BAR
@@ -110,14 +108,12 @@ const MAX_SCROLL_IMAGES = 3;
       @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
       .animate-marquee { display: flex; width: max-content; animation: marquee 35s linear infinite; will-change: transform; }
       @media (prefers-reduced-motion: reduce) { .animate-marquee { animation: none; } }
-
       #marquee-section {
         border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(9,9,11,0.55);
         backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       }
       .text-outline { color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12); paint-order: stroke fill; }
-
       .reveal-up {
         opacity: 0; filter: blur(8px); transform: translateY(32px);
         transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
@@ -131,7 +127,7 @@ const MAX_SCROLL_IMAGES = 3;
       .line-draw.in-view { transform: scaleX(1); }
 
       /* ============================================================
-         3D COVERFLOW SCROLLYTELLING (Optimized)
+         3D COVERFLOW SCROLLYTELLING (Optimized & Fixed Mobile Layout)
       ============================================================ */
       .project-section { position: relative; height: calc(var(--display-count) * 100svh); z-index: 1; contain: layout paint style; }
       .project-sticky-view {
@@ -156,7 +152,14 @@ const MAX_SCROLL_IMAGES = 3;
       .img-3d-card[data-active="true"] .img-3d-dim { opacity: 0; }
       .img-3d-gloss { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.3) 100%); pointer-events: none; z-index: 3; }
 
-      .text-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 1.5rem 1.5rem 4rem; z-index: 20; background: linear-gradient(to top, rgba(9,9,11,1) 10%, transparent 100%); pointer-events: none; }
+      /* Text Panel: Mobile Fixed Layout */
+      .text-panel {
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+        z-index: 20; pointer-events: none;
+        background: linear-gradient(to top, rgba(9,9,11,1) 10%, transparent 100%);
+        display: flex; flex-direction: column; justify-content: flex-end;
+        padding: 1.5rem 1.5rem 5rem; /* Extra bottom padding to clear FABs */
+      }
       @media (min-width: 768px) {
         .img-3d-card { left: 65%; max-width: 600px; height: 70%; }
         .text-panel { top: 0; bottom: auto; left: 0; width: 50%; height: 100%; padding: 6rem 4rem; background: linear-gradient(to right, rgba(9,9,11,1) 30%, transparent 100%); display: flex; flex-direction: column; justify-content: center; }
@@ -214,7 +217,11 @@ const MAX_SCROLL_IMAGES = 3;
       .btn-submit::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); transform: translateX(-100%); transition: transform 0.6s; }
       .btn-submit:hover::before { transform: translateX(100%); }
 
-      #lightbox { contain: layout style; }
+      /* LIGHTBOX (Smooth Fade & Scale) */
+      #lightbox { contain: layout style; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+      #lightbox:not(.hidden) { display: flex; opacity: 1; }
+      #lightbox.hidden { display: none; }
+      #img-zoom-wrapper { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
       .lightbox-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
       .fab-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
@@ -379,7 +386,7 @@ const MAX_SCROLL_IMAGES = 3;
                     </div>
                     <span class="text-[10px] font-mono text-zinc-600 tracking-widest">{allImages.length} FOTO {hasMore ? `· ${displayImages.length} DITAMPILKAN` : ''}</span>
                   </div>
-                  {hasMore && (<button class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer" data-open-all-images={JSON.stringify(allImages)}>
+                  {hasMore && (<button class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer relative z-10" data-open-all-images={JSON.stringify(allImages)}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
                     Lihat semua {allImages.length} foto
                   </button>)}
@@ -482,12 +489,9 @@ const MAX_SCROLL_IMAGES = 3;
     </div>
 
     <script>
-      // Preloader Handler
       window.addEventListener('load', () => {
         const preloader = document.getElementById('preloader');
-        if (preloader) {
-          setTimeout(() => preloader.classList.add('loaded'), 1500);
-        }
+        if (preloader) setTimeout(() => preloader.classList.add('loaded'), 1500);
       });
 
       document.addEventListener('astro:page-load', () => {
@@ -506,7 +510,6 @@ const MAX_SCROLL_IMAGES = 3;
             mX = e.clientX; mY = e.clientY;
             cursorDot.style.transform = `translate3d(${mX}px, ${mY}px, 0)`;
           });
-
           qsa('.magnetic').forEach(btn => {
             btn.addEventListener('mousemove', e => {
               const rect = btn.getBoundingClientRect();
@@ -516,7 +519,6 @@ const MAX_SCROLL_IMAGES = 3;
             });
             btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0, 0)'; });
           });
-
           qsa('a, button, .magnetic, .project-image').forEach(el => {
             el.addEventListener('mouseenter', () => cursorRing.classList.add('hovering'));
             el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovering'));
@@ -538,7 +540,6 @@ const MAX_SCROLL_IMAGES = 3;
           const track = qs('#filter-nav-track') as HTMLElement;
           const btnLeft = targetBtn.offsetLeft, btnWidth = targetBtn.offsetWidth, trackW = track.clientWidth;
           track.scrollTo({ left: btnLeft - (trackW / 2) + (btnWidth / 2), behavior: 'smooth' });
-          
           const filter = targetBtn.getAttribute('data-filter');
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
             s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'block' : 'none';
@@ -547,7 +548,7 @@ const MAX_SCROLL_IMAGES = 3;
         };
         filterBtns.forEach(btn => btn.addEventListener('click', () => setActiveFilter(btn)));
 
-        // ── 4. GLOBAL ANIMATION ENGINE (Single rAF Loop) ────────
+        // ── 4. GLOBAL ANIMATION ENGINE ──────────────────────────
         let metrics: { el: HTMLElement; top: number; height: number; cards: HTMLElement[]; dots: HTMLElement[] }[] = [];
         let activeProjectIndex = -1;
         let currentFocus = -1;
@@ -574,13 +575,12 @@ const MAX_SCROLL_IMAGES = 3;
         };
         cacheMetrics();
 
-        // Observer untuk set index project aktif (tanpa loop di rAF)
         const projObs = new IntersectionObserver((entries) => {
           entries.forEach(e => {
             if (e.isIntersecting) {
               const idx = parseInt((e.target as HTMLElement).dataset.projectIndex || '0');
               activeProjectIndex = idx;
-              currentFocus = -1; // Reset focus
+              currentFocus = -1;
             }
           });
         }, { rootMargin: '-45% 0px -45% 0px' });
@@ -595,18 +595,15 @@ const MAX_SCROLL_IMAGES = 3;
           const scrollY = window.scrollY;
           const winH = window.innerHeight;
 
-          // 1. Progress Bar & Header
           const max = document.documentElement.scrollHeight - winH;
           progressBar.style.width = max > 0 ? `${(scrollY / max) * 100}%` : '0%';
           siteHeader.classList.toggle('scrolled', scrollY > 40);
 
-          // 2. Cursor & Crosshair Lerp (Menggabungkan semua Lerp di sini)
           if (!isMobile()) {
             rX = lerp(rX, mX, 0.2); rY = lerp(rY, mY, 0.2);
             cursorRing.style.transform = `translate3d(${rX}px, ${rY}px, 0)`;
           }
 
-          // 3. Project 3D Carousel (Hanya proses index aktif)
           if (activeProjectIndex >= 0 && metrics[activeProjectIndex]) {
             const d = metrics[activeProjectIndex];
             const scrollable = Math.max(d.height - winH, 1);
@@ -614,7 +611,6 @@ const MAX_SCROLL_IMAGES = 3;
             const targetFocus = progress * (d.cards.length - 1);
             
             currentFocus = lerp(currentFocus, targetFocus, 0.12);
-
             const isMobileView = isMobile();
             let activeDotIndex = 0;
 
@@ -653,7 +649,6 @@ const MAX_SCROLL_IMAGES = 3;
             });
           }
 
-          // 4. 3D Tunnel Engine
           if (tunnelSection && tunnelTrack) {
             const tTop = tunnelSection.offsetTop;
             const tHeight = tunnelSection.offsetHeight;
@@ -662,7 +657,6 @@ const MAX_SCROLL_IMAGES = 3;
               const progress = Math.max(0, Math.min(1, (scrollY - tTop) / scrollable));
               const z = 500 - (progress * 3800);
               tunnelTrack.style.transform = `translate3d(0, 0, ${z}px)`;
-              
               if (progress > 0.3 && progress < 0.7) tunnelQuote.classList.add('visible');
               else tunnelQuote.classList.remove('visible');
             }
@@ -694,7 +688,7 @@ const MAX_SCROLL_IMAGES = 3;
           btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         }
 
-        // ── 6. LIGHTBOX ──────────────────────────────────────────
+        // ── 6. LIGHTBOX (Smooth Animation Implementation) ────────
         const lightbox = qs('#lightbox') as HTMLElement;
         if (lightbox) {
           const lbImg = qs('#lightbox-img') as HTMLImageElement;
@@ -708,18 +702,48 @@ const MAX_SCROLL_IMAGES = 3;
           const btnZRst = qs('#zoom-reset') as HTMLButtonElement;
           const zoomInd = qs('#zoom-indicator') as HTMLElement;
           let imgs: string[] = []; let idx = 0; let zoom = 1;
+          let closeTimeout: any;
 
           const applyZoom = () => { zoomWrap.style.transform = `scale(${zoom})`; zoomInd.textContent = `${Math.round(zoom * 100)}%`; };
           const resetZoom = () => { zoom = 1; applyZoom(); };
           const setImg = () => { lbImg.src = imgs[idx]; counter.textContent = `${idx + 1} / ${imgs.length}`; resetZoom(); const single = imgs.length <= 1; prevBtn.classList.toggle('hidden', single); nextBtn.classList.toggle('hidden', single); };
-          const open = (images: string[], startIdx: number) => { imgs = images; idx = startIdx; lightbox.classList.remove('hidden'); lightbox.classList.add('flex'); document.body.style.overflow = 'hidden'; setImg(); closeBtn.focus(); };
-          const close = () => { lightbox.classList.add('hidden'); lightbox.classList.remove('flex'); document.body.style.overflow = ''; resetZoom(); };
+          
+          const open = (images: string[], startIdx: number) => {
+            clearTimeout(closeTimeout);
+            imgs = images; idx = startIdx;
+            lightbox.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setImg();
+            // Trigger fade in
+            requestAnimationFrame(() => {
+              zoomWrap.style.transform = 'scale(1)'; // Reset from close animation
+              lightbox.style.opacity = '1';
+            });
+          };
+          
+          const close = () => {
+            lightbox.style.opacity = '0';
+            zoomWrap.style.transform = 'scale(0.95)'; // Subtle scale down on close
+            closeTimeout = setTimeout(() => {
+              lightbox.classList.add('hidden');
+              document.body.style.overflow = '';
+              resetZoom();
+            }, 300); // Match CSS transition duration
+          };
 
           document.getElementById('projects-container')?.addEventListener('click', e => {
             const target = (e.target as HTMLElement).closest('.project-image') as HTMLImageElement | null;
-            if (target) { e.stopPropagation(); open(JSON.parse(target.dataset.images!), parseInt(target.dataset.index!)); return; }
+            if (target) {
+              e.stopPropagation();
+              // Membuka full gallery di awal (index 0) agar persis seperti tombol lihat semua foto
+              open(JSON.parse(target.dataset.images!), 0);
+              return;
+            }
             const btn = (e.target as HTMLElement).closest('[data-open-all-images]') as HTMLElement | null;
-            if (btn) { e.stopPropagation(); open(JSON.parse(btn.dataset.openAllImages!), 0); }
+            if (btn) {
+              e.stopPropagation();
+              open(JSON.parse(btn.dataset.openAllImages!), 0);
+            }
           });
 
           nextBtn.addEventListener('click', e => { e.stopPropagation(); idx = (idx + 1) % imgs.length; setImg(); });
@@ -755,7 +779,7 @@ const MAX_SCROLL_IMAGES = 3;
           });
         }
 
-        // ── 8. CROSSHAIR (desktop only) ──────────────────────────
+        // ── 8. CROSSHAIR ─────────────────────────────────────────
         if (isMobile() || prefersReducedMotion) return;
         const chH = qs('#crosshair-h') as HTMLElement;
         const chV = qs('#crosshair-v') as HTMLElement;
