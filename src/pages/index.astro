@@ -72,17 +72,30 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         SCROLL PROGRESS
+         SCROLL PROGRESS BAR UPGRADED
       ============================================================ */
       #scroll-progress {
         position: fixed;
         top: 0; left: 0;
         width: 0%;
         height: 2px;
-        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 80%, #fff 100%);
         z-index: 9999;
         will-change: width;
         pointer-events: none;
+        box-shadow: 0 0 8px rgba(255,255,255,0.6);
+      }
+      #scroll-progress::after {
+        content: '';
+        position: absolute;
+        right: -2px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 10px #fff;
       }
 
       /* ============================================================
@@ -102,16 +115,11 @@ const MAX_SCROLL_IMAGES = 3;
         .animate-marquee { animation: none; }
       }
 
-      /* ============================================================
-         MARQUEE SECTION — glassmorphism, zero gap from hero
-      ============================================================ */
       #marquee-section {
-        /* No border-top: hero's border-b handles the divide */
         border-bottom: 1px solid rgba(255,255,255,0.06);
         background: rgba(9,9,11,0.55);
         backdrop-filter: blur(18px) saturate(140%);
         -webkit-backdrop-filter: blur(18px) saturate(140%);
-        /* Subtle inner highlight on top edge */
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       }
 
@@ -125,35 +133,57 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         PROJECT SECTION
+         PROJECT SECTION & 3D SCROLLYTELLING
       ============================================================ */
       .project-section {
         height: calc(var(--display-count) * 100svh);
         contain: layout style;
       }
 
+      .project-image-stack {
+        perspective: 1200px;
+        transform-style: preserve-3d;
+      }
+
+      .parallax-img-wrapper {
+        transform-style: preserve-3d;
+        transition: transform 0.1s ease-out;
+      }
+
       /* ============================================================
-         REVEAL ANIMATIONS — composited only
+         REVEAL ANIMATIONS WITH BLUR EFFECT
       ============================================================ */
       .reveal-up {
         opacity: 0;
+        filter: blur(8px);
         transform: translateY(32px);
         transition:
           opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: transform, opacity;
+          transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+          filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, opacity, filter;
       }
-      .reveal-up.in-view { opacity: 1; transform: translateY(0); }
+      .reveal-up.in-view {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
 
       .reveal-right {
         opacity: 0;
+        filter: blur(8px);
         transform: translateX(40px);
         transition:
           opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: transform, opacity;
+          transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+          filter 1s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, opacity, filter;
       }
-      .reveal-right.in-view { opacity: 1; transform: translateX(0); }
+      .reveal-right.in-view {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+      }
 
       .delay-50  { transition-delay: 50ms; }
       .delay-100 { transition-delay: 100ms; }
@@ -189,15 +219,11 @@ const MAX_SCROLL_IMAGES = 3;
         }
       }
 
-      /* ============================================================
-         PARALLAX WRAPPER
-      ============================================================ */
       .parallax-img-wrapper {
         position: absolute;
         inset: -8%;
         width: 116%;
         height: 116%;
-        will-change: transform;
       }
       .parallax-img-wrapper .img-premium {
         width: 100%;
@@ -213,9 +239,6 @@ const MAX_SCROLL_IMAGES = 3;
         }
       }
 
-      /* ============================================================
-         LINE DRAW
-      ============================================================ */
       .line-draw {
         transform: scaleX(0);
         transform-origin: left;
@@ -254,9 +277,6 @@ const MAX_SCROLL_IMAGES = 3;
         border-radius: 2px;
       }
 
-      /* ============================================================
-         PROJECT COUNTER
-      ============================================================ */
       .project-counter {
         font-variant-numeric: tabular-nums;
         font-feature-settings: "tnum";
@@ -297,17 +317,12 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         FILTER NAV — offset untuk fixed navbar (56px)
+         FILTER NAV
       ============================================================ */
       #filter-nav {
-        /* Duduk persis di bawah fixed navbar, tidak tertutup sama sekali */
         top: 56px;
       }
-
-      /* Garis indikator aktif di bawah nav — slide animasi */
-      #filter-nav-track {
-        position: relative;
-      }
+      #filter-nav-track { position: relative; }
       #filter-nav-indicator {
         position: absolute;
         bottom: 0;
@@ -320,7 +335,6 @@ const MAX_SCROLL_IMAGES = 3;
         pointer-events: none;
         will-change: left, width;
       }
-
       .filter-btn {
         position: relative;
         overflow: hidden;
@@ -328,8 +342,6 @@ const MAX_SCROLL_IMAGES = 3;
         transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s;
       }
       .filter-btn:active { transform: scale(0.95); }
-
-      /* Subtle shimmer on hover */
       .filter-btn::before {
         content: '';
         position: absolute;
@@ -340,14 +352,12 @@ const MAX_SCROLL_IMAGES = 3;
         border-radius: inherit;
       }
       .filter-btn:hover::before { opacity: 1; }
-
-      /* Active state tambahan: ring glow */
       .filter-btn[data-active="true"] {
         box-shadow: 0 0 12px rgba(255,255,255,0.15);
       }
 
       /* ============================================================
-         SITE HEADER — new top navbar
+         SITE HEADER
       ============================================================ */
       #site-header {
         position: fixed;
@@ -488,69 +498,80 @@ const MAX_SCROLL_IMAGES = 3;
       }
 
       /* ============================================================
-         MUSIC TOGGLE
+         FLOATING ACTION BUTTONS (MUSIC & BACK TO TOP)
       ============================================================ */
-      #music-toggle {
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-        cursor: pointer;
-        transition: background 0.3s, color 0.3s, transform 0.2s, box-shadow 0.3s;
-      }
-      #music-toggle:active { transform: scale(0.9); }
-
-      /* ============================================================
-         BACK TO TOP BUTTON
-      ============================================================ */
-      #back-to-top {
+      .fab-container {
         position: fixed;
-        bottom: 5.5rem;
+        bottom: 1.5rem;
         right: 1.5rem;
         z-index: 100;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(24,24,27,0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: rgba(255,255,255,0.6);
         display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
         align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        opacity: 0;
-        transform: translateY(12px) scale(0.9);
-        transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1), transform 0.35s cubic-bezier(0.16,1,0.3,1), background 0.25s, color 0.25s, box-shadow 0.25s;
-        pointer-events: none;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
       }
-      #back-to-top.visible {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-      }
-      #back-to-top:hover {
-        background: white;
-        color: black;
-        box-shadow: 0 0 24px rgba(255,255,255,0.2);
-      }
-      #back-to-top:active { transform: scale(0.9); }
       @media (min-width: 768px) {
-        #back-to-top {
-          bottom: 6rem;
-          right: 2.5rem;
-          width: 48px;
-          height: 48px;
-        }
-        #music-toggle {
+        .fab-container {
           bottom: 2.5rem;
           right: 2.5rem;
         }
       }
+      .fab {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(24, 24, 27, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      @media (min-width: 768px) {
+        .fab { width: 48px; height: 48px; }
+      }
+      .fab:hover {
+        background: white;
+        color: black;
+        box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+      }
+      .fab:active { transform: scale(0.9); }
+      
+      .fab#back-to-top {
+        opacity: 0;
+        transform: translateY(12px) scale(0.9);
+        pointer-events: none;
+      }
+      .fab#back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      .fab#music-toggle.playing::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.4);
+        animation: pulse-ring 1.5s ease-out infinite;
+      }
+      @keyframes pulse-ring {
+        0% { transform: scale(0.95); opacity: 1; }
+        100% { transform: scale(1.3); opacity: 0; }
+      }
 
       /* ============================================================
-         FOOTER — redesigned
+         FOOTER
       ============================================================ */
       #site-footer {
         position: relative;
@@ -683,10 +704,7 @@ const MAX_SCROLL_IMAGES = 3;
           align-items: center;
         }
       }
-      .footer-nav-links {
-        display: flex;
-        gap: 1.25rem;
-      }
+      .footer-nav-links { display: flex; gap: 1.25rem; }
       .footer-nav-link {
         font-size: 0.65rem;
         letter-spacing: 0.12em;
@@ -697,15 +715,9 @@ const MAX_SCROLL_IMAGES = 3;
       }
       .footer-nav-link:hover { color: rgba(255,255,255,0.6); }
 
-      /* ============================================================
-         SAFE AREA
-      ============================================================ */
       @supports (padding: env(safe-area-inset-bottom)) {
-        #music-toggle {
+        .fab-container {
           bottom: calc(1.5rem + env(safe-area-inset-bottom));
-        }
-        #back-to-top {
-          bottom: calc(5rem + env(safe-area-inset-bottom));
         }
         nav#filter-nav {
           padding-left: max(1.5rem, env(safe-area-inset-left));
@@ -720,9 +732,7 @@ const MAX_SCROLL_IMAGES = 3;
     <!-- SCROLL PROGRESS -->
     <div id="scroll-progress" aria-hidden="true"></div>
 
-    <!-- ============================================================
-         SITE HEADER (top navbar)
-    ============================================================ -->
+    <!-- SITE HEADER -->
     <header id="site-header">
       <a href="#" class="header-logo">Fatih <span>/ Portfolio</span></a>
       <nav class="header-links">
@@ -736,16 +746,14 @@ const MAX_SCROLL_IMAGES = 3;
       </nav>
     </header>
 
-    <!-- DOT NAV (desktop sidebar) -->
+    <!-- DOT NAV -->
     <nav id="dot-nav" aria-hidden="true">
       {projects && projects.map((_, i) => (
         <div class="dot-nav-item" data-dot={i} title={`Project ${i + 1}`}></div>
       ))}
     </nav>
 
-    <!-- ============================================================
-         BACKGROUND
-    ============================================================ -->
+    <!-- BACKGROUND -->
     <div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none" aria-hidden="true">
       <div class="hidden md:block absolute inset-0 opacity-[0.05]"
            style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem; contain: strict;">
@@ -759,9 +767,7 @@ const MAX_SCROLL_IMAGES = 3;
     </div>
     <div class="fixed inset-0 -z-40 bg-zinc-950/60 pointer-events-none" aria-hidden="true"></div>
 
-    <!-- ============================================================
-         HERO — no mb, border-b acts as divider to marquee
-    ============================================================ -->
+    <!-- HERO -->
     <div class="relative z-10 w-full border-b border-white/5 pt-14">
       <PixelHero
         client:load
@@ -783,9 +789,7 @@ const MAX_SCROLL_IMAGES = 3;
       />
     </div>
 
-    <!-- ============================================================
-         MARQUEE — glassmorphism, zero gap (shares hero border-b)
-    ============================================================ -->
+    <!-- MARQUEE -->
     <div id="marquee-section" class="w-full overflow-hidden py-5 md:py-7 z-20 relative" aria-hidden="true">
       <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
       <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
@@ -799,11 +803,8 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </div>
 
-    <!-- ============================================================
-         FILTER NAV — sticky tepat di bawah fixed navbar (top-[56px])
-    ============================================================ -->
+    <!-- FILTER NAV -->
     <nav id="filter-nav" class="sticky top-[56px] z-[150] py-3 bg-zinc-950/90 backdrop-blur-2xl border-b border-white/[0.06] reveal-up no-scrollbar overflow-hidden">
-      <!-- Fade edges kiri-kanan untuk hint scroll pada mobile -->
       <div class="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
       <div class="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
 
@@ -826,13 +827,10 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </nav>
 
-    <!-- ============================================================
-         PROJECTS
-    ============================================================ -->
+    <!-- PROJECTS -->
     <main class="relative w-full" id="projects-container">
       {projects && projects.map((project, index) => {
         const allImages = project.image_urls || [''];
-        // Displayed in scroll = max 3; lightbox always gets all
         const displayImages = allImages.slice(0, MAX_SCROLL_IMAGES);
         const hasMore = allImages.length > MAX_SCROLL_IMAGES;
         return (
@@ -868,7 +866,6 @@ const MAX_SCROLL_IMAGES = 3;
                   {project.description}
                 </p>
 
-                <!-- image count + "more" indicator -->
                 <div class="mt-6 flex items-center gap-3 reveal-up delay-300">
                   <div class="flex gap-1">
                     {displayImages.map((_: string, dotI: number) => (
@@ -893,12 +890,12 @@ const MAX_SCROLL_IMAGES = 3;
               </div>
             </div>
 
-            <!-- RIGHT: IMAGE STACK (max 3 displayed) -->
-            <div class="absolute inset-0 md:relative w-full md:w-7/12 z-10 md:order-2">
+            <!-- RIGHT: IMAGE STACK (3D Scrollytelling) -->
+            <div class="project-image-stack absolute inset-0 md:relative w-full md:w-7/12 z-10 md:order-2">
               {displayImages.map((url: string, imgIndex: number) => (
                 <div class="h-[100svh] w-full sticky top-0 overflow-hidden">
                   <div class="absolute inset-0 z-10 pointer-events-none"
-                       style="background: radial-gradient(ellipse at center, transparent 40%, rgba(9,9,11,0.4) 100%)"
+                       style="background: radial-gradient(ellipse at center, transparent 40%, rgba(9,9,11,0.6) 100%)"
                        aria-hidden="true">
                   </div>
                   <div class="parallax-img-wrapper" data-parallax>
@@ -922,9 +919,7 @@ const MAX_SCROLL_IMAGES = 3;
       })}
     </main>
 
-    <!-- ============================================================
-         CONTACT
-    ============================================================ -->
+    <!-- CONTACT -->
     <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
       <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
       <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
@@ -963,9 +958,7 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </section>
 
-    <!-- ============================================================
-         FOOTER — redesigned
-    ============================================================ -->
+    <!-- FOOTER -->
     <footer id="site-footer">
       <div class="footer-inner">
         <div>
@@ -1004,29 +997,24 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </footer>
 
-    <!-- ============================================================
-         MUSIC PLAYER
-    ============================================================ -->
+    <!-- AUDIO & FLOATING ACTIONS -->
     <audio id="bg-music" loop preload="none">
       <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
     </audio>
-    <button id="music-toggle" class="fixed bottom-6 right-6 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/60 p-4 rounded-full shadow-2xl flex items-center justify-center" aria-label="Toggle Music">
-      <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-      <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-    </button>
+    
+    <div class="fab-container">
+      <button id="back-to-top" class="fab" aria-label="Kembali ke atas">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+      <button id="music-toggle" class="fab" aria-label="Toggle Music">
+        <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <svg id="music-icon-pause" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      </button>
+    </div>
 
-    <!-- ============================================================
-         BACK TO TOP
-    ============================================================ -->
-    <button id="back-to-top" aria-label="Kembali ke atas" class="fixed bottom-6 right-6 z-[100] bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white/60 p-4 rounded-full shadow-2xl flex items-center justify-center" aria-label="Toggle Music">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="18 15 12 9 6 15"></polyline>
-      </svg>
-    </button>
-
-    <!-- ============================================================
-         LIGHTBOX
-    ============================================================ -->
+    <!-- LIGHTBOX -->
     <div id="lightbox" class="fixed inset-0 z-[999] hidden items-center justify-center" role="dialog" aria-modal="true" aria-label="Image viewer">
       <div class="lightbox-bg"></div>
       <div class="absolute top-4 left-4 md:top-6 md:left-6 flex items-center bg-zinc-900/70 backdrop-blur-md border border-white/[0.08] rounded-xl p-1 z-50 gap-1">
@@ -1047,9 +1035,7 @@ const MAX_SCROLL_IMAGES = 3;
       <div id="lightbox-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-zinc-400 text-xs font-mono tracking-widest bg-zinc-900/70 border border-white/[0.08] px-4 py-2 rounded-full backdrop-blur-md z-50">1 / 1</div>
     </div>
 
-    <!-- ============================================================
-         SCRIPTS
-    ============================================================ -->
+    <!-- SCRIPTS -->
     <script>
       document.addEventListener('astro:page-load', () => {
 
@@ -1061,11 +1047,18 @@ const MAX_SCROLL_IMAGES = 3;
         // ── 1. SCROLL PROGRESS ────────────────────────────────────
         const progressBar = qs('#scroll-progress') as HTMLElement;
         if (progressBar) {
+          let scrollTicking = false;
           const update = () => {
             const max = document.documentElement.scrollHeight - window.innerHeight;
             progressBar.style.width = max > 0 ? `${(window.scrollY / max) * 100}%` : '0%';
+            scrollTicking = false;
           };
-          window.addEventListener('scroll', update, { passive: true });
+          window.addEventListener('scroll', () => {
+            if (!scrollTicking) {
+              requestAnimationFrame(update);
+              scrollTicking = true;
+            }
+          }, { passive: true });
           update();
         }
 
@@ -1088,7 +1081,6 @@ const MAX_SCROLL_IMAGES = 3;
         const dots     = qsa('.dot-nav-item');
         const sections = qsa('.project-section');
         if (dots.length && sections.length) {
-          // Offset scroll: navbar (56px) + filter nav (~48px) + extra 8px
           const SCROLL_OFFSET = 56 + 48 + 8;
           dots.forEach((dot, i) => dot.addEventListener('click', () => {
             const section = sections[i] as HTMLElement | undefined;
@@ -1106,11 +1098,10 @@ const MAX_SCROLL_IMAGES = 3;
           sections.forEach(s => dotObs.observe(s));
         }
 
-        // ── 5. FILTER — dengan auto-scroll pill & glow state ─────
+        // ── 5. FILTER ─────────────────────────────────────────────
         const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
         const filterNav  = qs('#filter-nav') as HTMLElement;
 
-        // Scroll active pill ke tengah viewport filter nav (mobile)
         const scrollBtnIntoView = (btn: HTMLElement) => {
           const track = qs('#filter-nav-track') as HTMLElement;
           if (!track) return;
@@ -1129,28 +1120,67 @@ const MAX_SCROLL_IMAGES = 3;
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
             s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'flex' : 'none';
           });
+          // Re-trigger 3D updates
+          update3DScroll();
         };
 
         filterBtns.forEach(btn => btn.addEventListener('click', () => setActiveFilter(btn)));
 
-        // Init: pastikan "All" ter-scroll ke view
         const initActive = qs('.filter-btn[data-active="true"]') as HTMLElement | null;
         if (initActive) requestAnimationFrame(() => scrollBtnIntoView(initActive));
 
-        // ── 6. PARALLAX (desktop, rAF-throttled) ─────────────────
-        if (!isMobile() && !prefersReducedMotion) {
-          const parallaxEls = qsa('[data-parallax]') as NodeListOf<HTMLElement>;
-          let ticking = false;
-          const doParallax = () => {
-            parallaxEls.forEach(el => {
-              const sticky = el.closest('.sticky');
-              if (!sticky) return;
-              const rect = sticky.getBoundingClientRect();
-              el.style.transform = `translate3d(0,${(-rect.top / window.innerHeight) * 30}px,0)`;
-            });
-            ticking = false;
-          };
-          window.addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(doParallax); ticking = true; } }, { passive: true });
+        // ── 6. 3D SCROLLYTELLING & PARALLAX ───────────────────────
+        let ticking3D = false;
+        const update3DScroll = () => {
+          const projectSections = qsa('.project-section') as NodeListOf<HTMLElement>;
+          const winH = window.innerHeight;
+
+          projectSections.forEach(section => {
+            if (section.style.display === 'none') return;
+            
+            const imgWrappers = section.querySelectorAll('.parallax-img-wrapper');
+            const rect = section.getBoundingClientRect();
+
+            if (rect.top < winH && rect.bottom > 0) {
+              const scrollable = Math.max(rect.height - winH, 1);
+              const scrolled = Math.min(Math.max(-rect.top, 0), scrollable);
+              const progress = scrolled / scrollable;
+              
+              imgWrappers.forEach((img, i) => {
+                const seg = 1 / imgWrappers.length;
+                const center = (i * seg) + (seg / 2);
+                const dist = (progress - center) / seg; // Negative = past, Positive = future
+                
+                if (Math.abs(dist) < 1.5) {
+                  const rotateX = dist * 15; 
+                  const scale = 1 - Math.abs(dist) * 0.08;
+                  const opacity = 1 - Math.abs(dist) * 0.6;
+                  
+                  // Desktop parallax offset tweak
+                  let translateY = 0;
+                  if (!isMobile()) {
+                    translateY = (-rect.top / winH) * 20;
+                  }
+                  
+                  img.style.transform = `translateY(${translateY}px) rotateX(${rotateX}deg) scale(${scale})`;
+                  img.style.opacity = Math.max(0, opacity).toString();
+                } else {
+                  img.style.opacity = '0';
+                }
+              });
+            }
+          });
+          ticking3D = false;
+        };
+
+        if (!prefersReducedMotion) {
+          window.addEventListener('scroll', () => {
+            if (!ticking3D) {
+              requestAnimationFrame(update3DScroll);
+              ticking3D = true;
+            }
+          }, { passive: true });
+          update3DScroll();
         }
 
         // ── 7. MUSIC ──────────────────────────────────────────────
@@ -1165,11 +1195,11 @@ const MAX_SCROLL_IMAGES = 3;
             if (playing) {
               bgMusic.pause();
               iconPause?.classList.add('hidden'); iconPlay?.classList.remove('hidden');
-              musicToggle.classList.remove('bg-white', 'text-black');
+              musicToggle.classList.remove('playing');
             } else {
               bgMusic.play().catch(() => {});
               iconPlay?.classList.add('hidden'); iconPause?.classList.remove('hidden');
-              musicToggle.classList.add('bg-white', 'text-black');
+              musicToggle.classList.add('playing');
             }
             playing = !playing;
           });
@@ -1223,18 +1253,18 @@ const MAX_SCROLL_IMAGES = 3;
             document.body.style.overflow = ''; resetZoom();
           };
 
-          // Project image clicks (lightbox gets ALL images via data-images)
           document.getElementById('projects-container')?.addEventListener('click', e => {
             const target = (e.target as HTMLElement).closest('.project-image') as HTMLImageElement | null;
-            if (!target) return;
-            open(JSON.parse(target.dataset.images!), parseInt(target.dataset.index!));
-          });
-
-          // "See all photos" button
-          document.getElementById('projects-container')?.addEventListener('click', e => {
+            if (target) {
+              e.stopPropagation();
+              open(JSON.parse(target.dataset.images!), parseInt(target.dataset.index!));
+              return;
+            }
             const btn = (e.target as HTMLElement).closest('[data-open-all-images]') as HTMLElement | null;
-            if (!btn) return;
-            open(JSON.parse(btn.dataset.openAllImages!), 0);
+            if (btn) {
+              e.stopPropagation();
+              open(JSON.parse(btn.dataset.openAllImages!), 0);
+            }
           });
 
           nextBtn.addEventListener('click', e => { e.stopPropagation(); idx = (idx + 1) % imgs.length; setImg(); });
@@ -1246,7 +1276,6 @@ const MAX_SCROLL_IMAGES = 3;
           btnZOut.addEventListener('click', e => { e.stopPropagation(); zoom = Math.max(zoom - 0.25, 0.5); applyZoom(); });
           btnZRst.addEventListener('click', e => { e.stopPropagation(); resetZoom(); });
 
-          // Touch swipe
           let txStart = 0;
           lightbox.addEventListener('touchstart', e => { txStart = e.touches[0].clientX; }, { passive: true });
           lightbox.addEventListener('touchend', e => {
