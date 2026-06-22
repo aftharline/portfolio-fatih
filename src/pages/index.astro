@@ -47,32 +47,36 @@ const MAX_SCROLL_IMAGES = 3;
 
     <style>
       /* ============================================================
-         BASE & PERFORMANCE (Zero Reflow Architecture)
+         PRELOADER (Cinematic Loading)
+      ============================================================ */
+      #preloader {
+        position: fixed; inset: 0; z-index: 10000; background: #09090b;
+        display: flex; align-items: center; justify-content: center;
+        transition: opacity 0.8s ease, visibility 0.8s ease;
+      }
+      #preloader.loaded { opacity: 0; visibility: hidden; }
+      .pl-content { text-align: center; width: 80%; max-width: 300px; }
+      .pl-text { font-size: 1.5rem; font-weight: 900; letter-spacing: 0.2em; color: #fff; margin-bottom: 1.5rem; opacity: 0; animation: plFade 1s ease 0.2s forwards; }
+      @keyframes plFade { to { opacity: 1; } }
+      .pl-bar { width: 100%; height: 1px; background: rgba(255,255,255,0.1); overflow: hidden; }
+      .pl-progress { width: 0%; height: 100%; background: #fff; animation: plLoad 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      @keyframes plLoad { 0% { width: 0%; } 100% { width: 100%; } }
+
+      /* ============================================================
+         BASE & PERFORMANCE
       ============================================================ */
       *, *::before, *::after { box-sizing: border-box; }
-      html {
-        scroll-behavior: smooth;
-        text-size-adjust: 100%;
-        -webkit-text-size-adjust: 100%;
-      }
-      body {
-        overscroll-behavior: none;
-        -webkit-overflow-scrolling: touch;
-        overflow-x: clip;
-      }
+      html { scroll-behavior: smooth; text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+      body { overscroll-behavior: none; -webkit-overflow-scrolling: touch; overflow-x: clip; }
       ::-webkit-scrollbar { width: 2px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-      a, button, [role="button"] {
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-      }
+      a, button, [role="button"] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
       /* ============================================================
-         CUSTOM CURSOR (Premium Desktop)
+         CUSTOM CURSOR (Instant & Snappy)
       ============================================================ */
       @media (hover: hover) and (pointer: fine) {
         body { cursor: none; }
@@ -80,15 +84,15 @@ const MAX_SCROLL_IMAGES = 3;
       }
       #cursor-dot, #cursor-ring {
         position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
-        border-radius: 50%; transform: translate(-50%, -50%);
+        border-radius: 50%; will-change: transform;
       }
-      #cursor-dot { width: 6px; height: 6px; background: rgba(255,255,255,0.9); }
+      #cursor-dot { width: 6px; height: 6px; background: rgba(255,255,255,0.9); margin: -3px 0 0 -3px; }
       #cursor-ring {
-        width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.3);
-        transition: width 0.3s, height 0.3s, background 0.3s, border-color 0.3s;
+        width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.3); margin: -16px 0 0 -16px;
+        transition: width 0.3s, height 0.3s, margin 0.3s, background 0.3s, border-color 0.3s;
       }
       #cursor-ring.hovering {
-        width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6);
+        width: 60px; height: 60px; margin: -30px 0 0 -30px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6);
       }
 
       /* ============================================================
@@ -114,7 +118,6 @@ const MAX_SCROLL_IMAGES = 3;
       }
       .text-outline { color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12); paint-order: stroke fill; }
 
-      /* Reveal Animations */
       .reveal-up {
         opacity: 0; filter: blur(8px); transform: translateY(32px);
         transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
@@ -128,75 +131,52 @@ const MAX_SCROLL_IMAGES = 3;
       .line-draw.in-view { transform: scaleX(1); }
 
       /* ============================================================
-         3D COVERFLOW SCROLLYTELLING (Full Range & Butter Smooth)
+         3D COVERFLOW SCROLLYTELLING (Optimized)
       ============================================================ */
-      .project-section {
-        position: relative;
-        height: calc(var(--display-count) * 100svh);
-        z-index: 1; contain: layout paint style;
-      }
+      .project-section { position: relative; height: calc(var(--display-count) * 100svh); z-index: 1; contain: layout paint style; }
       .project-sticky-view {
         position: sticky; top: 0; height: 100svh; width: 100%; overflow: hidden;
         perspective: 1200px; perspective-origin: center 45%;
         display: flex; align-items: center; justify-content: center;
       }
-      .project-bg-glow {
-        position: absolute; width: 80%; height: 60%;
-        background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-        filter: blur(60px); z-index: 0; pointer-events: none;
-      }
+      .project-bg-glow { position: absolute; width: 80%; height: 60%; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%); filter: blur(60px); z-index: 0; pointer-events: none; }
       .image-3d-container { position: absolute; inset: 0; transform-style: preserve-3d; z-index: 10; pointer-events: none; }
       
       .img-3d-card {
-        position: absolute; top: 50%; left: 50%;
-        width: 85%; max-width: 550px; height: 65%; border-radius: 16px; overflow: hidden;
-        box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+        position: absolute; top: 50%; left: 50%; width: 85%; max-width: 550px; height: 65%; border-radius: 16px; overflow: hidden;
         pointer-events: none; backface-visibility: hidden; background: #18181b;
         transform: translate(-50%, -50%) translate3d(60%, 0, -400px) rotateY(45deg) scale(0.9);
-        opacity: 0; will-change: transform, opacity, box-shadow;
+        opacity: 0; will-change: transform, opacity;
+        box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
       }
+      .img-3d-card[data-active="true"] { box-shadow: 0 0 80px 10px rgba(255,255,255,0.08), 0 30px 60px -15px rgba(0,0,0,0.8); }
       .img-3d-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
       
-      .img-3d-dim { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(4px); z-index: 2; opacity: 1; pointer-events: none; transition: opacity 0.3s ease; }
+      .img-3d-dim { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.75); z-index: 2; opacity: 1; pointer-events: none; transition: opacity 0.3s ease; }
       .img-3d-card[data-active="true"] .img-3d-dim { opacity: 0; }
       .img-3d-gloss { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.3) 100%); pointer-events: none; z-index: 3; }
 
-      .text-panel {
-        position: absolute; bottom: 0; left: 0; width: 100%; padding: 1.5rem 1.5rem 4rem; z-index: 20;
-        background: linear-gradient(to top, rgba(9,9,11,1) 10%, transparent 100%); pointer-events: none;
-      }
+      .text-panel { position: absolute; bottom: 0; left: 0; width: 100%; padding: 1.5rem 1.5rem 4rem; z-index: 20; background: linear-gradient(to top, rgba(9,9,11,1) 10%, transparent 100%); pointer-events: none; }
       @media (min-width: 768px) {
         .img-3d-card { left: 65%; max-width: 600px; height: 70%; }
         .text-panel { top: 0; bottom: auto; left: 0; width: 50%; height: 100%; padding: 6rem 4rem; background: linear-gradient(to right, rgba(9,9,11,1) 30%, transparent 100%); display: flex; flex-direction: column; justify-content: center; }
       }
 
       /* ============================================================
-         NEW SECTION: 3D PHILOSOPHY TUNNEL (Fixed & Spread)
+         3D PHILOSOPHY TUNNEL
       ============================================================ */
       #philosophy-section { position: relative; height: 300svh; z-index: 2; contain: layout paint style; }
-      .philosophy-sticky {
-        position: sticky; top: 0; height: 100svh; width: 100%; overflow: hidden;
-        perspective: 1000px; background: radial-gradient(circle at center, #0c0c0e 0%, #09090b 100%);
-      }
+      .philosophy-sticky { position: sticky; top: 0; height: 100svh; width: 100%; overflow: hidden; perspective: 1000px; background: radial-gradient(circle at center, #0c0c0e 0%, #09090b 100%); }
       .tunnel-track { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; will-change: transform; }
-      .tunnel-word {
-        position: absolute; font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; letter-spacing: -0.05em;
-        text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.2);
-        pointer-events: none; white-space: nowrap; will-change: transform, opacity;
-      }
+      .tunnel-word { position: absolute; font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.2); pointer-events: none; white-space: nowrap; will-change: transform, opacity; }
       .tunnel-word.solid { color: rgba(255,255,255,0.9); -webkit-text-stroke: 0; }
-      .tunnel-quote {
-        position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px;
-        text-align: center; color: rgba(255,255,255,0.6); font-size: clamp(0.8rem, 2vw, 0.9rem); line-height: 1.6;
-        z-index: 50; pointer-events: none; opacity: 0; transition: opacity 0.5s;
-      }
+      .tunnel-quote { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; text-align: center; color: rgba(255,255,255,0.6); font-size: clamp(0.8rem, 2vw, 0.9rem); line-height: 1.6; z-index: 50; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
       .tunnel-quote.visible { opacity: 1; }
 
       /* ============================================================
          UI ELEMENTS & MAGNETIC BUTTONS
       ============================================================ */
       .magnetic { position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
-
       #dot-nav { position: fixed; right: 1.25rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 60; pointer-events: none; }
       @media (max-width: 767px) { #dot-nav { display: none; } }
       .dot-nav-item { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; cursor: none; }
@@ -281,14 +261,22 @@ const MAX_SCROLL_IMAGES = 3;
         .image-3d-container { position: relative; transform: none; display: flex; flex-direction: column; gap: 1rem; padding: 2rem; pointer-events: auto; }
         .img-3d-card { position: relative; transform: none !important; top: auto; left: auto; width: 90%; height: 400px; opacity: 1 !important; margin: 0 auto; }
         .img-3d-dim { display: none; } .text-panel { position: relative; background: none; height: auto; padding: 2rem; }
-        .tunnel-track { transform: none !important; height: 100vh; } #grain { display: none; }
+        .tunnel-track { transform: none !important; height: 100vh; }
       }
     </style>
   </head>
 
   <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
 
-    <!-- Film Grain & Custom Cursor -->
+    <!-- Preloader -->
+    <div id="preloader">
+      <div class="pl-content">
+        <div class="pl-text">FATIH</div>
+        <div class="pl-bar"><div class="pl-progress"></div></div>
+      </div>
+    </div>
+
+    <!-- Custom Cursor -->
     <div id="cursor-dot" aria-hidden="true"></div>
     <div id="cursor-ring" aria-hidden="true"></div>
 
@@ -494,6 +482,14 @@ const MAX_SCROLL_IMAGES = 3;
     </div>
 
     <script>
+      // Preloader Handler
+      window.addEventListener('load', () => {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+          setTimeout(() => preloader.classList.add('loaded'), 1500);
+        }
+      });
+
       document.addEventListener('astro:page-load', () => {
         const qs  = (s: string) => document.querySelector(s);
         const qsa = (s: string) => document.querySelectorAll(s);
@@ -508,10 +504,9 @@ const MAX_SCROLL_IMAGES = 3;
         if (!isMobile()) {
           window.addEventListener('mousemove', e => {
             mX = e.clientX; mY = e.clientY;
-            cursorDot.style.transform = `translate(${mX}px, ${mY}px) translate(-50%, -50%)`;
+            cursorDot.style.transform = `translate3d(${mX}px, ${mY}px, 0)`;
           });
 
-          // Magnetic effect
           qsa('.magnetic').forEach(btn => {
             btn.addEventListener('mousemove', e => {
               const rect = btn.getBoundingClientRect();
@@ -522,7 +517,6 @@ const MAX_SCROLL_IMAGES = 3;
             btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0, 0)'; });
           });
 
-          // Cursor hover state
           qsa('a, button, .magnetic, .project-image').forEach(el => {
             el.addEventListener('mouseenter', () => cursorRing.classList.add('hovering'));
             el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovering'));
@@ -536,20 +530,7 @@ const MAX_SCROLL_IMAGES = 3;
         );
         qsa('.reveal-up, .reveal-right, .line-draw').forEach(el => revealObs.observe(el));
 
-        // ── 3. DOT NAV ───────────────────────────────────────────
-        const dots = qsa('.dot-nav-item');
-        const sections = qsa('.project-section');
-        if (dots.length && sections.length) {
-          const SCROLL_OFFSET = 56 + 48 + 8;
-          dots.forEach((dot, i) => dot.addEventListener('click', () => {
-            const section = sections[i] as HTMLElement | undefined;
-            if (!section) return;
-            const y = section.offsetTop - SCROLL_OFFSET;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-          }));
-        }
-
-        // ── 4. FILTER ────────────────────────────────────────────
+        // ── 3. FILTER ────────────────────────────────────────────
         const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
         const setActiveFilter = (targetBtn: HTMLElement) => {
           filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
@@ -562,19 +543,20 @@ const MAX_SCROLL_IMAGES = 3;
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
             s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'block' : 'none';
           });
-          cacheMetrics(); // Re-cache setelah filter
+          cacheMetrics();
         };
         filterBtns.forEach(btn => btn.addEventListener('click', () => setActiveFilter(btn)));
 
-        // ── 5. GLOBAL ANIMATION ENGINE (Zero Reflow) ─────────────
+        // ── 4. GLOBAL ANIMATION ENGINE (Single rAF Loop) ────────
         let metrics: { el: HTMLElement; top: number; height: number; cards: HTMLElement[]; dots: HTMLElement[] }[] = [];
-        let tunnelSection = qs('#philosophy-section') as HTMLElement;
-        let tunnelTrack = qs('#tunnel-track') as HTMLElement;
-        let tunnelQuote = qs('#tunnel-quote') as HTMLElement;
-        let progressBar = qs('#scroll-progress') as HTMLElement;
-        let siteHeader = qs('#site-header') as HTMLElement;
+        let activeProjectIndex = -1;
         let currentFocus = -1;
-        let lastActiveEl: HTMLElement | null = null;
+        
+        const tunnelSection = qs('#philosophy-section') as HTMLElement;
+        const tunnelTrack = qs('#tunnel-track') as HTMLElement;
+        const tunnelQuote = qs('#tunnel-quote') as HTMLElement;
+        const progressBar = qs('#scroll-progress') as HTMLElement;
+        const siteHeader = qs('#site-header') as HTMLElement;
 
         const cacheMetrics = () => {
           metrics = [];
@@ -592,11 +574,20 @@ const MAX_SCROLL_IMAGES = 3;
         };
         cacheMetrics();
 
+        // Observer untuk set index project aktif (tanpa loop di rAF)
+        const projObs = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              const idx = parseInt((e.target as HTMLElement).dataset.projectIndex || '0');
+              activeProjectIndex = idx;
+              currentFocus = -1; // Reset focus
+            }
+          });
+        }, { rootMargin: '-45% 0px -45% 0px' });
+        qsa('.project-section').forEach(s => projObs.observe(s));
+
         let resizeTimer;
-        window.addEventListener('resize', () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(cacheMetrics, 250);
-        });
+        window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(cacheMetrics, 250); });
 
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -609,42 +600,34 @@ const MAX_SCROLL_IMAGES = 3;
           progressBar.style.width = max > 0 ? `${(scrollY / max) * 100}%` : '0%';
           siteHeader.classList.toggle('scrolled', scrollY > 40);
 
-          // 2. Custom Cursor Ring Lerp
+          // 2. Cursor & Crosshair Lerp (Menggabungkan semua Lerp di sini)
           if (!isMobile()) {
-            rX = lerp(rX, mX, 0.15); rY = lerp(rY, mY, 0.15);
-            cursorRing.style.transform = `translate(${rX}px, ${rY}px) translate(-50%, -50%)`;
+            rX = lerp(rX, mX, 0.2); rY = lerp(rY, mY, 0.2);
+            cursorRing.style.transform = `translate3d(${rX}px, ${rY}px, 0)`;
           }
 
-          // 3. Project 3D Carousel
-          let activeData = null;
-          // Cari section yang sedang aktif berdasarkan cache (No DOM Reflow)
-          for (let d of metrics) {
-            if (scrollY >= d.top - winH && scrollY < d.top + d.height) {
-              activeData = d; break;
-            }
-          }
-
-          if (activeData) {
-            if (lastActiveEl !== activeData.el) {
-              currentFocus = -1; lastActiveEl = activeData.el;
-            }
-            // Hitung progress mutlak (0 ke 1 dari awal sampai akhir section)
-            const scrollable = Math.max(activeData.height - winH, 1);
-            const progress = Math.max(0, Math.min(1, (scrollY - activeData.top) / scrollable));
-            const targetFocus = progress * (activeData.cards.length - 1);
+          // 3. Project 3D Carousel (Hanya proses index aktif)
+          if (activeProjectIndex >= 0 && metrics[activeProjectIndex]) {
+            const d = metrics[activeProjectIndex];
+            const scrollable = Math.max(d.height - winH, 1);
+            const progress = Math.max(0, Math.min(1, (scrollY - d.top) / scrollable));
+            const targetFocus = progress * (d.cards.length - 1);
             
-            currentFocus = lerp(currentFocus, targetFocus, 0.1);
+            currentFocus = lerp(currentFocus, targetFocus, 0.12);
 
             const isMobileView = isMobile();
             let activeDotIndex = 0;
 
-            activeData.cards.forEach((card, i) => {
+            d.cards.forEach((card, i) => {
               const dist = i - currentFocus;
               const absDist = Math.abs(dist);
 
               if (absDist > 1.5) {
-                card.style.opacity = '0'; card.style.pointerEvents = 'none';
-                card.dataset.active = "false"; return;
+                if (card.style.opacity !== '0') {
+                  card.style.opacity = '0'; card.style.pointerEvents = 'none';
+                  card.dataset.active = "false";
+                }
+                return;
               }
 
               const xMove = dist * (isMobileView ? 55 : 65);
@@ -660,17 +643,11 @@ const MAX_SCROLL_IMAGES = 3;
               const isActive = absDist < 0.5;
               card.dataset.active = isActive ? "true" : "false";
               
-              if (isActive) {
-                card.style.pointerEvents = "auto";
-                card.style.boxShadow = `0 0 80px 10px rgba(255,255,255,0.1), 0 30px 60px -15px rgba(0,0,0,0.8)`;
-                activeDotIndex = i;
-              } else {
-                card.style.pointerEvents = "none";
-                card.style.boxShadow = `0 30px 60px -15px rgba(0,0,0,0.7)`;
-              }
+              if (isActive) { card.style.pointerEvents = "auto"; activeDotIndex = i; }
+              else { card.style.pointerEvents = "none"; }
             });
 
-            activeData.dots.forEach((dot, i) => {
+            d.dots.forEach((dot, i) => {
               if (i === activeDotIndex) { dot.classList.remove('bg-white/20', 'w-1'); dot.classList.add('bg-white/60', 'w-3'); }
               else { dot.classList.remove('bg-white/60', 'w-3'); dot.classList.add('bg-white/20', 'w-1'); }
             });
@@ -683,11 +660,9 @@ const MAX_SCROLL_IMAGES = 3;
             if (scrollY >= tTop - winH && scrollY < tTop + tHeight) {
               const scrollable = tHeight - winH;
               const progress = Math.max(0, Math.min(1, (scrollY - tTop) / scrollable));
-              // Bergerak dari 500px (dekat) ke -3300px (jauh menembus kamera)
               const z = 500 - (progress * 3800);
               tunnelTrack.style.transform = `translate3d(0, 0, ${z}px)`;
               
-              // Munculkan quote di tengah-tengah tunnel
               if (progress > 0.3 && progress < 0.7) tunnelQuote.classList.add('visible');
               else tunnelQuote.classList.remove('visible');
             }
@@ -698,7 +673,7 @@ const MAX_SCROLL_IMAGES = 3;
 
         if (!prefersReducedMotion) requestAnimationFrame(animate);
 
-        // ── 6. MUSIC & BACK TO TOP ───────────────────────────────
+        // ── 5. MUSIC & BACK TO TOP ───────────────────────────────
         const bgMusic = qs('#bg-music') as HTMLAudioElement;
         const musicToggle = qs('#music-toggle') as HTMLButtonElement;
         if (musicToggle && bgMusic) {
@@ -719,7 +694,7 @@ const MAX_SCROLL_IMAGES = 3;
           btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         }
 
-        // ── 7. LIGHTBOX ──────────────────────────────────────────
+        // ── 6. LIGHTBOX ──────────────────────────────────────────
         const lightbox = qs('#lightbox') as HTMLElement;
         if (lightbox) {
           const lbImg = qs('#lightbox-img') as HTMLImageElement;
@@ -766,7 +741,7 @@ const MAX_SCROLL_IMAGES = 3;
           });
         }
 
-        // ── 8. WA FORM ───────────────────────────────────────────
+        // ── 7. WA FORM ───────────────────────────────────────────
         const waForm = qs('#wa-form') as HTMLFormElement;
         if (waForm) {
           waForm.addEventListener('submit', e => {
@@ -780,27 +755,21 @@ const MAX_SCROLL_IMAGES = 3;
           });
         }
 
-        // ── 9. CROSSHAIR (desktop only) ──────────────────────────
+        // ── 8. CROSSHAIR (desktop only) ──────────────────────────
         if (isMobile() || prefersReducedMotion) return;
         const chH = qs('#crosshair-h') as HTMLElement;
         const chV = qs('#crosshair-v') as HTMLElement;
         const coords = qs('#cursor-coords') as HTMLElement;
-        let chX = window.innerWidth / 2, chY = window.innerHeight / 2, chVisible = false;
+        let chVisible = false;
 
         window.addEventListener('mousemove', e => {
-          chX = e.clientX; chY = e.clientY;
           if (!chVisible) { chH.style.opacity='1'; chV.style.opacity='1'; coords.style.opacity='1'; chVisible = true; }
+          chH.style.transform = `translate3d(0, ${e.clientY}px, 0)`;
+          chV.style.transform = `translate3d(${e.clientX}px, 0, 0)`;
+          coords.style.transform = `translate3d(${e.clientX + 14}px, ${e.clientY + 14}px, 0)`;
+          coords.textContent = `X:${Math.round(e.clientX)} // Y:${Math.round(e.clientY)}`;
         });
         document.addEventListener('mouseleave', () => { chH.style.opacity='0'; chV.style.opacity='0'; coords.style.opacity='0'; chVisible = false; });
-
-        const animCH = () => {
-          chH.style.transform = `translate3d(0,${chY}px,0)`;
-          chV.style.transform = `translate3d(${chX}px,0,0)`;
-          coords.style.transform = `translate3d(${chX + 14}px,${chY + 14}px,0)`;
-          coords.textContent = `X:${Math.round(chX)} // Y:${Math.round(chY)}`;
-          requestAnimationFrame(animCH);
-        };
-        requestAnimationFrame(animCH);
       });
     </script>
   </body>
