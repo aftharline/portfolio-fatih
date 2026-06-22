@@ -59,6 +59,7 @@ const MAX_SCROLL_IMAGES = 3;
       body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
+        overflow-x: clip; /* Mencegah overflow horizontal dari 3D transform */
       }
       ::-webkit-scrollbar { width: 2px; }
       ::-webkit-scrollbar-track { background: transparent; }
@@ -123,31 +124,10 @@ const MAX_SCROLL_IMAGES = 3;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       }
 
-      /* ============================================================
-         TYPOGRAPHY
-      ============================================================ */
       .text-outline {
         color: transparent;
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12);
         paint-order: stroke fill;
-      }
-
-      /* ============================================================
-         PROJECT SECTION & 3D SCROLLYTELLING
-      ============================================================ */
-      .project-section {
-        height: calc(var(--display-count) * 100svh);
-        contain: layout style;
-      }
-
-      .project-image-stack {
-        perspective: 1200px;
-        transform-style: preserve-3d;
-      }
-
-      .parallax-img-wrapper {
-        transform-style: preserve-3d;
-        transition: transform 0.1s ease-out;
       }
 
       /* ============================================================
@@ -192,53 +172,6 @@ const MAX_SCROLL_IMAGES = 3;
       .delay-300 { transition-delay: 300ms; }
       .delay-400 { transition-delay: 400ms; }
 
-      /* ============================================================
-         IMAGE
-      ============================================================ */
-      .img-premium {
-        transition:
-          transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
-          filter 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: transform, filter;
-        backface-visibility: hidden;
-      }
-      @media (min-width: 768px) and (hover: hover) {
-        .img-premium {
-          filter: grayscale(100%) brightness(0.65) contrast(1.1);
-          transform: scale(1);
-        }
-        .img-container:hover .img-premium {
-          filter: grayscale(0%) brightness(1);
-          transform: scale(1.04);
-        }
-      }
-      @media (max-width: 767px), (hover: none) {
-        .img-premium {
-          filter: grayscale(0%) brightness(0.85);
-          transform: scale(1);
-        }
-      }
-
-      .parallax-img-wrapper {
-        position: absolute;
-        inset: -8%;
-        width: 116%;
-        height: 116%;
-      }
-      .parallax-img-wrapper .img-premium {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      @media (max-width: 767px) {
-        .parallax-img-wrapper {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-        }
-      }
-
       .line-draw {
         transform: scaleX(0);
         transform-origin: left;
@@ -248,7 +181,110 @@ const MAX_SCROLL_IMAGES = 3;
       .line-draw.in-view { transform: scaleX(1); }
 
       /* ============================================================
-         DOT NAV
+         3D SCROLLYTELLING PROJECTS SECTION
+      ============================================================ */
+      .project-section {
+        position: relative;
+        height: calc(var(--display-count) * 100svh);
+        z-index: 1;
+      }
+      .project-sticky-view {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        width: 100%;
+        overflow: hidden;
+        perspective: 1400px;
+        perspective-origin: center 40%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .project-bg-glow {
+        position: absolute;
+        width: 80%;
+        height: 60%;
+        background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+        filter: blur(60px);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .image-3d-container {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        z-index: 10;
+        pointer-events: none; /* Hanya kartu aktif yang bisa diklik */
+      }
+      
+      .img-3d-card {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 85%;
+        max-width: 550px;
+        height: 65%;
+        transform: translate(-50%, -50%); /* Base transform */
+        will-change: transform, opacity;
+        transform-style: preserve-3d;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+        pointer-events: auto;
+        backface-visibility: hidden;
+        background: #18181b;
+      }
+      
+      .img-3d-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+      }
+      
+      .img-3d-gloss {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.2) 100%);
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      /* Text Panel Layout */
+      .text-panel {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 1.5rem 1.5rem 4rem;
+        z-index: 20;
+        background: linear-gradient(to top, rgba(9,9,11,1) 10%, transparent 100%);
+        pointer-events: none;
+      }
+      @media (min-width: 768px) {
+        .img-3d-card {
+          left: 65%; /* Shift ke kanan karena teks di kiri */
+          max-width: 600px;
+          height: 70%;
+        }
+        .text-panel {
+            top: 0;
+            bottom: auto;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            padding: 6rem 4rem;
+            background: linear-gradient(to right, rgba(9,9,11,1) 30%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+      }
+
+      /* ============================================================
+         DOT NAV & OTHER UI
       ============================================================ */
       #dot-nav {
         position: fixed;
@@ -263,8 +299,7 @@ const MAX_SCROLL_IMAGES = 3;
       }
       @media (max-width: 767px) { #dot-nav { display: none; } }
       .dot-nav-item {
-        width: 4px;
-        height: 4px;
+        width: 4px; height: 4px;
         border-radius: 50%;
         background: rgba(255,255,255,0.18);
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -277,462 +312,159 @@ const MAX_SCROLL_IMAGES = 3;
         border-radius: 2px;
       }
 
-      .project-counter {
-        font-variant-numeric: tabular-nums;
-        font-feature-settings: "tnum";
-      }
+      .project-counter { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 
-      /* ============================================================
-         CROSSHAIR (desktop)
-      ============================================================ */
       #crosshair-h, #crosshair-v {
-        position: fixed;
-        pointer-events: none;
-        z-index: 10;
-        opacity: 0;
-        transition: opacity 0.5s;
-        will-change: transform;
+        position: fixed; pointer-events: none; z-index: 10;
+        opacity: 0; transition: opacity 0.5s; will-change: transform;
       }
-      #crosshair-h {
-        left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
-      }
-      #crosshair-v {
-        top: 0; bottom: 0;
-        width: 1px;
-        background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
-      }
+      #crosshair-h { left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent); }
+      #crosshair-v { top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent); }
       #cursor-coords {
-        position: fixed;
-        pointer-events: none;
-        z-index: 10;
-        font-family: 'Courier New', monospace;
-        font-size: 9px;
-        color: rgba(255,255,255,0.3);
-        opacity: 0;
-        transition: opacity 0.3s;
-        letter-spacing: 0.1em;
-        will-change: transform;
+        position: fixed; pointer-events: none; z-index: 10;
+        font-family: 'Courier New', monospace; font-size: 9px;
+        color: rgba(255,255,255,0.3); opacity: 0; transition: opacity 0.3s;
+        letter-spacing: 0.1em; will-change: transform;
       }
 
-      /* ============================================================
-         FILTER NAV
-      ============================================================ */
-      #filter-nav {
-        top: 56px;
-      }
+      #filter-nav { top: 56px; }
       #filter-nav-track { position: relative; }
       #filter-nav-indicator {
-        position: absolute;
-        bottom: 0;
-        height: 2px;
-        background: rgba(255,255,255,0.9);
-        border-radius: 1px;
-        transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                    width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                    opacity 0.25s;
-        pointer-events: none;
-        will-change: left, width;
+        position: absolute; bottom: 0; height: 2px;
+        background: rgba(255,255,255,0.9); border-radius: 1px;
+        transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s;
+        pointer-events: none; will-change: left, width;
       }
       .filter-btn {
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
+        position: relative; overflow: hidden; isolation: isolate;
         transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s;
       }
       .filter-btn:active { transform: scale(0.95); }
       .filter-btn::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: rgba(255,255,255,0.05);
-        opacity: 0;
-        transition: opacity 0.25s;
-        border-radius: inherit;
+        content: ''; position: absolute; inset: 0;
+        background: rgba(255,255,255,0.05); opacity: 0;
+        transition: opacity 0.25s; border-radius: inherit;
       }
       .filter-btn:hover::before { opacity: 1; }
-      .filter-btn[data-active="true"] {
-        box-shadow: 0 0 12px rgba(255,255,255,0.15);
-      }
+      .filter-btn[data-active="true"] { box-shadow: 0 0 12px rgba(255,255,255,0.15); }
 
-      /* ============================================================
-         SITE HEADER
-      ============================================================ */
       #site-header {
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        z-index: 200;
-        padding: 0 1.5rem;
-        height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+        padding: 0 1.5rem; height: 56px;
+        display: flex; align-items: center; justify-content: space-between;
         background: rgba(9,9,11,0.72);
         backdrop-filter: blur(20px) saturate(150%);
         -webkit-backdrop-filter: blur(20px) saturate(150%);
         border-bottom: 1px solid rgba(255,255,255,0.05);
         transition: background 0.4s, border-color 0.4s;
       }
-      #site-header.scrolled {
-        background: rgba(9,9,11,0.92);
-        border-bottom-color: rgba(255,255,255,0.08);
-      }
-      .header-logo {
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.85);
-        text-decoration: none;
-        transition: color 0.2s;
-      }
+      #site-header.scrolled { background: rgba(9,9,11,0.92); border-bottom-color: rgba(255,255,255,0.08); }
+      .header-logo { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-decoration: none; transition: color 0.2s; }
       .header-logo:hover { color: white; }
-      .header-logo span {
-        color: rgba(255,255,255,0.3);
-        font-weight: 400;
-      }
-      .header-links {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-      .header-link {
-        font-size: 0.65rem;
-        font-weight: 600;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.4);
-        text-decoration: none;
-        padding: 0.4rem 0.75rem;
-        border-radius: 999px;
-        transition: color 0.2s, background 0.2s;
-      }
-      .header-link:hover {
-        color: white;
-        background: rgba(255,255,255,0.06);
-      }
-      .header-cta {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: black;
-        background: white;
-        padding: 0.45rem 1rem;
-        border-radius: 999px;
-        text-decoration: none;
-        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-        margin-left: 0.5rem;
-      }
-      .header-cta:hover {
-        background: #e5e5e5;
-        box-shadow: 0 0 20px rgba(255,255,255,0.15);
-      }
+      .header-logo span { color: rgba(255,255,255,0.3); font-weight: 400; }
+      .header-links { display: flex; align-items: center; gap: 0.25rem; }
+      .header-link { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 999px; transition: color 0.2s, background 0.2s; }
+      .header-link:hover { color: white; background: rgba(255,255,255,0.06); }
+      .header-cta { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: black; background: white; padding: 0.45rem 1rem; border-radius: 999px; text-decoration: none; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; margin-left: 0.5rem; }
+      .header-cta:hover { background: #e5e5e5; box-shadow: 0 0 20px rgba(255,255,255,0.15); }
       .header-cta:active { transform: scale(0.96); }
-      @media (max-width: 767px) {
-        .header-links .header-link { display: none; }
-      }
+      @media (max-width: 767px) { .header-links .header-link { display: none; } }
 
-      /* ============================================================
-         CONTACT FORM
-      ============================================================ */
       .glass-input {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        font-size: 0.875rem;
-        color: white;
-        width: 100%;
-        outline: none;
-        transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-        -webkit-appearance: none;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.875rem; color: white;
+        width: 100%; outline: none; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; -webkit-appearance: none;
       }
       .glass-input::placeholder { color: rgba(255,255,255,0.25); }
-      .glass-input:focus {
-        border-color: rgba(255,255,255,0.4);
-        background: rgba(255,255,255,0.07);
-        box-shadow: 0 0 0 3px rgba(255,255,255,0.05);
-      }
+      .glass-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
       .btn-submit {
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
-        background: white;
-        color: black;
-        font-weight: 700;
-        font-size: 0.875rem;
-        padding: 1rem;
-        border-radius: 12px;
-        width: 100%;
-        transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-        cursor: pointer;
-        border: none;
+        position: relative; overflow: hidden; isolation: isolate;
+        background: white; color: black; font-weight: 700; font-size: 0.875rem;
+        padding: 1rem; border-radius: 12px; width: 100%;
+        transition: background 0.3s, transform 0.2s, box-shadow 0.3s; cursor: pointer; border: none;
       }
-      .btn-submit:hover {
-        background: #e5e5e5;
-        box-shadow: 0 0 32px rgba(255,255,255,0.25);
-      }
+      .btn-submit:hover { background: #e5e5e5; box-shadow: 0 0 32px rgba(255,255,255,0.25); }
       .btn-submit:active { transform: scale(0.98); }
       .btn-submit::before {
-        content: '';
-        position: absolute;
-        inset: 0;
+        content: ''; position: absolute; inset: 0;
         background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-        transform: translateX(-100%);
-        transition: transform 0.6s;
+        transform: translateX(-100%); transition: transform 0.6s;
       }
       .btn-submit:hover::before { transform: translateX(100%); }
 
-      /* ============================================================
-         LIGHTBOX
-      ============================================================ */
       #lightbox { contain: layout style; }
-      .lightbox-bg {
-        position: absolute;
-        inset: 0;
-        background: rgba(0,0,0,0.96);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-      }
+      .lightbox-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
-      /* ============================================================
-         FLOATING ACTION BUTTONS (MUSIC & BACK TO TOP)
-      ============================================================ */
       .fab-container {
-        position: fixed;
-        bottom: 1.5rem;
-        right: 1.5rem;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        align-items: center;
+        position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
+        display: flex; flex-direction: column; gap: 0.75rem; align-items: center;
       }
       @media (min-width: 768px) {
-        .fab-container {
-          bottom: 2.5rem;
-          right: 2.5rem;
-        }
+        .fab-container { bottom: 2.5rem; right: 2.5rem; }
       }
       .fab {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(24, 24, 27, 0.8);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: rgba(255,255,255,0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
-        position: relative;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
+        width: 44px; height: 44px; border-radius: 50%;
+        background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
-      @media (min-width: 768px) {
-        .fab { width: 48px; height: 48px; }
-      }
-      .fab:hover {
-        background: white;
-        color: black;
-        box-shadow: 0 0 20px rgba(255,255,255,0.2);
-        transform: translateY(-2px);
-      }
+      @media (min-width: 768px) { .fab { width: 48px; height: 48px; } }
+      .fab:hover { background: white; color: black; box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: translateY(-2px); }
       .fab:active { transform: scale(0.9); }
-      
-      .fab#back-to-top {
-        opacity: 0;
-        transform: translateY(12px) scale(0.9);
-        pointer-events: none;
-      }
-      .fab#back-to-top.visible {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-      }
-
+      .fab#back-to-top { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
+      .fab#back-to-top.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
       .fab#music-toggle.playing::after {
-        content: '';
-        position: absolute;
-        inset: -4px;
-        border-radius: 50%;
-        border: 1px solid rgba(255,255,255,0.4);
-        animation: pulse-ring 1.5s ease-out infinite;
+        content: ''; position: absolute; inset: -4px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.4); animation: pulse-ring 1.5s ease-out infinite;
       }
-      @keyframes pulse-ring {
-        0% { transform: scale(0.95); opacity: 1; }
-        100% { transform: scale(1.3); opacity: 0; }
-      }
+      @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 
-      /* ============================================================
-         FOOTER
-      ============================================================ */
-      #site-footer {
-        position: relative;
-        z-index: 50;
-        background: #09090b;
-        border-top: 1px solid rgba(255,255,255,0.06);
-        overflow: hidden;
-      }
-      .footer-inner {
-        max-width: 80rem;
-        margin: 0 auto;
-        padding: 3rem 1.5rem 2rem;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 2.5rem;
-      }
-      @media (min-width: 768px) {
-        .footer-inner {
-          grid-template-columns: 1fr auto;
-          gap: 3rem;
-          align-items: end;
-        }
-      }
-      .footer-brand-name {
-        font-size: 2rem;
-        font-weight: 900;
-        letter-spacing: -0.02em;
-        color: rgba(255,255,255,0.06);
-        line-height: 1;
-        text-transform: uppercase;
-        pointer-events: none;
-        user-select: none;
-      }
-      @media (min-width: 768px) {
-        .footer-brand-name { font-size: 3.5rem; }
-      }
-      .footer-tagline {
-        font-size: 0.7rem;
-        font-weight: 500;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.2);
-        margin-top: 0.5rem;
-      }
-      .footer-socials {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1.5rem;
-      }
-      .footer-social-link {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 1px solid rgba(255,255,255,0.08);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255,255,255,0.35);
-        text-decoration: none;
-        transition: border-color 0.25s, color 0.25s, background 0.25s;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-      }
-      .footer-social-link:hover {
-        border-color: rgba(255,255,255,0.3);
-        color: white;
-        background: rgba(255,255,255,0.05);
-      }
-      .footer-right {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-      }
-      @media (min-width: 768px) {
-        .footer-right { align-items: flex-end; }
-      }
-      .footer-copy {
-        font-size: 0.65rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.18);
-      }
-      .footer-copy a {
-        color: rgba(255,255,255,0.35);
-        text-decoration: none;
-        transition: color 0.2s;
-      }
+      #site-footer { position: relative; z-index: 50; background: #09090b; border-top: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+      .footer-inner { max-width: 80rem; margin: 0 auto; padding: 3rem 1.5rem 2rem; display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
+      @media (min-width: 768px) { .footer-inner { grid-template-columns: 1fr auto; gap: 3rem; align-items: end; } }
+      .footer-brand-name { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; color: rgba(255,255,255,0.06); line-height: 1; text-transform: uppercase; pointer-events: none; user-select: none; }
+      @media (min-width: 768px) { .footer-brand-name { font-size: 3.5rem; } }
+      .footer-tagline { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-top: 0.5rem; }
+      .footer-socials { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+      .footer-social-link { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.35); text-decoration: none; transition: border-color 0.25s, color 0.25s, background 0.25s; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
+      .footer-social-link:hover { border-color: rgba(255,255,255,0.3); color: white; background: rgba(255,255,255,0.05); }
+      .footer-right { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      @media (min-width: 768px) { .footer-right { align-items: flex-end; } }
+      .footer-copy { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.18); }
+      .footer-copy a { color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
       .footer-copy a:hover { color: rgba(255,255,255,0.75); }
-      .footer-status {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.65rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.25);
-      }
-      .footer-status-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: #4ade80;
-        box-shadow: 0 0 6px #4ade80;
-        animation: pulse-dot 2.5s ease-in-out infinite;
-      }
-      @keyframes pulse-dot {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.4; }
-      }
-      .footer-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.04);
-        margin: 0;
-      }
-      .footer-bottom {
-        padding: 1rem 1.5rem;
-        max-width: 80rem;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: flex-start;
-      }
-      @media (min-width: 768px) {
-        .footer-bottom {
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
-        }
-      }
+      .footer-status { display: flex; align-items: center; gap: 0.4rem; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.25); }
+      .footer-status-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; animation: pulse-dot 2.5s ease-in-out infinite; }
+      @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      .footer-divider { height: 1px; background: rgba(255,255,255,0.04); margin: 0; }
+      .footer-bottom { padding: 1rem 1.5rem; max-width: 80rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      @media (min-width: 768px) { .footer-bottom { flex-direction: row; justify-content: space-between; align-items: center; } }
       .footer-nav-links { display: flex; gap: 1.25rem; }
-      .footer-nav-link {
-        font-size: 0.65rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.2);
-        text-decoration: none;
-        transition: color 0.2s;
-      }
+      .footer-nav-link { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); text-decoration: none; transition: color 0.2s; }
       .footer-nav-link:hover { color: rgba(255,255,255,0.6); }
 
       @supports (padding: env(safe-area-inset-bottom)) {
-        .fab-container {
-          bottom: calc(1.5rem + env(safe-area-inset-bottom));
-        }
-        nav#filter-nav {
-          padding-left: max(1.5rem, env(safe-area-inset-left));
-          padding-right: max(1.5rem, env(safe-area-inset-right));
-        }
+        .fab-container { bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+        nav#filter-nav { padding-left: max(1.5rem, env(safe-area-inset-left)); padding-right: max(1.5rem, env(safe-area-inset-right)); }
+      }
+
+      /* FALLBACK: REDUCED MOTION */
+      @media (prefers-reduced-motion: reduce) {
+        .project-section { height: auto; }
+        .project-sticky-view { position: relative; height: auto; display: block; perspective: none; }
+        .image-3d-container { position: relative; transform: none; display: flex; flex-direction: column; gap: 1rem; padding: 2rem; pointer-events: auto; }
+        .img-3d-card { position: relative; transform: none !important; top: auto; left: auto; width: 90%; height: 400px; opacity: 1 !important; margin: 0 auto; }
+        .text-panel { position: relative; background: none; height: auto; padding: 2rem; }
       }
     </style>
   </head>
 
   <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
 
-    <!-- SCROLL PROGRESS -->
     <div id="scroll-progress" aria-hidden="true"></div>
 
-    <!-- SITE HEADER -->
     <header id="site-header">
       <a href="#" class="header-logo">Fatih <span>/ Portfolio</span></a>
       <nav class="header-links">
@@ -746,18 +478,14 @@ const MAX_SCROLL_IMAGES = 3;
       </nav>
     </header>
 
-    <!-- DOT NAV -->
     <nav id="dot-nav" aria-hidden="true">
       {projects && projects.map((_, i) => (
         <div class="dot-nav-item" data-dot={i} title={`Project ${i + 1}`}></div>
       ))}
     </nav>
 
-    <!-- BACKGROUND -->
     <div class="fixed inset-0 -z-50 bg-[#09090b] pointer-events-none" aria-hidden="true">
-      <div class="hidden md:block absolute inset-0 opacity-[0.05]"
-           style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem; contain: strict;">
-      </div>
+      <div class="hidden md:block absolute inset-0 opacity-[0.05]" style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 4rem 4rem; contain: strict;"></div>
       <div class="hidden md:block absolute inset-0 z-0 opacity-[0.03] [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]">
         <Boxes client:idle />
       </div>
@@ -767,7 +495,6 @@ const MAX_SCROLL_IMAGES = 3;
     </div>
     <div class="fixed inset-0 -z-40 bg-zinc-950/60 pointer-events-none" aria-hidden="true"></div>
 
-    <!-- HERO -->
     <div class="relative z-10 w-full border-b border-white/5 pt-14">
       <PixelHero
         client:load
@@ -789,30 +516,21 @@ const MAX_SCROLL_IMAGES = 3;
       />
     </div>
 
-    <!-- MARQUEE -->
     <div id="marquee-section" class="w-full overflow-hidden py-5 md:py-7 z-20 relative" aria-hidden="true">
       <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
       <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
       <div class="animate-marquee">
-        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none">
-          INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;
-        </span>
-        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none" aria-hidden="true">
-          INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;
-        </span>
+        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none">INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;</span>
+        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none" aria-hidden="true">INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;</span>
       </div>
     </div>
 
-    <!-- FILTER NAV -->
     <nav id="filter-nav" class="sticky top-[56px] z-[150] py-3 bg-zinc-950/90 backdrop-blur-2xl border-b border-white/[0.06] reveal-up no-scrollbar overflow-hidden">
       <div class="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
       <div class="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
-
       <div id="filter-nav-track" class="flex justify-start md:justify-center gap-2 overflow-x-auto px-6 no-scrollbar relative">
         {categories.map((cat) => {
-          const count = cat === 'All'
-            ? (projects?.length ?? 0)
-            : (projects?.filter(p => p.category === cat).length ?? 0);
+          const count = cat === 'All' ? (projects?.length ?? 0) : (projects?.filter(p => p.category === cat).length ?? 0);
           return (
             <button
               data-filter={cat}
@@ -827,7 +545,6 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </nav>
 
-    <!-- PROJECTS -->
     <main class="relative w-full" id="projects-container">
       {projects && projects.map((project, index) => {
         const allImages = project.image_urls || [''];
@@ -835,91 +552,78 @@ const MAX_SCROLL_IMAGES = 3;
         const hasMore = allImages.length > MAX_SCROLL_IMAGES;
         return (
           <section
-            class="project-section relative w-full flex flex-col md:flex-row border-b border-white/5 img-container"
+            class="project-section"
             data-category={project.category}
             data-project-index={index}
             style={`--display-count: ${displayImages.length}; z-index: ${index + 10};`}
           >
+            <div class="project-sticky-view">
+              <div class="project-bg-glow"></div>
 
-            <!-- LEFT: TEXT PANEL -->
-            <div class="w-full md:w-5/12 h-[100svh] sticky top-0 flex flex-col justify-end md:justify-center p-6 pb-28 md:p-16 z-30 pointer-events-none md:order-1">
-              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/98 via-zinc-950/60 to-transparent md:hidden -z-10" aria-hidden="true"></div>
-              <div class="w-full max-w-lg pointer-events-auto relative">
-
-                <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
-                  <span class="project-counter font-mono text-[10px] md:text-xs text-zinc-600 tracking-[0.3em] uppercase">
-                    0{index + 1}
-                  </span>
-                  <div class="flex-1 h-px bg-white/10 line-draw max-w-[60px]"></div>
-                  {project.category && (
-                    <span class="px-2.5 py-0.5 bg-white/5 border border-white/[0.08] rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">
-                      {project.category}
-                    </span>
-                  )}
-                </div>
-
-                <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white reveal-up delay-100">
-                  {project.title}
-                </h2>
-
-                <p class="text-zinc-400 text-sm md:text-base leading-relaxed font-light reveal-up delay-200 max-w-md">
-                  {project.description}
-                </p>
-
-                <div class="mt-6 flex items-center gap-3 reveal-up delay-300">
-                  <div class="flex gap-1">
-                    {displayImages.map((_: string, dotI: number) => (
-                      <div class={`h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20 w-1'}`}></div>
-                    ))}
-                    {hasMore && <div class="h-1 w-1 rounded-full bg-white/10"></div>}
-                  </div>
-                  <span class="text-[10px] font-mono text-zinc-600 tracking-widest">
-                    {allImages.length} FOTO {hasMore ? `· ${displayImages.length} DITAMPILKAN` : ''}
-                  </span>
-                </div>
-
-                {hasMore && (
-                  <button
-                    class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer"
-                    data-open-all-images={JSON.stringify(allImages)}
+              {/* 3D IMAGE LAYER */}
+              <div class="image-3d-container">
+                {displayImages.map((url: string, imgIndex: number) => (
+                  <div 
+                    class="img-3d-card" 
+                    data-img-index={imgIndex}
+                    style={`transform: translate(-50%, -50%) translateZ(${imgIndex === 0 ? 0 : -500}px);`}
                   >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
-                    Lihat semua {allImages.length} foto
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <!-- RIGHT: IMAGE STACK (3D Scrollytelling) -->
-            <div class="project-image-stack absolute inset-0 md:relative w-full md:w-7/12 z-10 md:order-2">
-              {displayImages.map((url: string, imgIndex: number) => (
-                <div class="h-[100svh] w-full sticky top-0 overflow-hidden">
-                  <div class="absolute inset-0 z-10 pointer-events-none"
-                       style="background: radial-gradient(ellipse at center, transparent 40%, rgba(9,9,11,0.6) 100%)"
-                       aria-hidden="true">
-                  </div>
-                  <div class="parallax-img-wrapper" data-parallax>
                     <img
                       src={url}
                       alt={`${project.title} - foto ${imgIndex + 1}`}
-                      class="project-image img-premium w-full h-full object-cover cursor-zoom-in"
+                      class="project-image w-full h-full object-cover cursor-zoom-in"
                       data-images={JSON.stringify(allImages)}
                       data-index={imgIndex}
                       loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'}
                       decoding="async"
                       fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'}
                     />
+                    <div class="img-3d-gloss"></div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
+              {/* TEXT PANEL LAYER */}
+              <div class="text-panel">
+                <div class="w-full max-w-lg pointer-events-auto relative">
+                  <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
+                    <span class="project-counter font-mono text-[10px] md:text-xs text-zinc-600 tracking-[0.3em] uppercase">0{index + 1}</span>
+                    <div class="flex-1 h-px bg-white/10 line-draw max-w-[60px]"></div>
+                    {project.category && (
+                      <span class="px-2.5 py-0.5 bg-white/5 border border-white/[0.08] rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">{project.category}</span>
+                    )}
+                  </div>
+
+                  <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white reveal-up delay-100">{project.title}</h2>
+                  <p class="text-zinc-400 text-sm md:text-base leading-relaxed font-light reveal-up delay-200 max-w-md">{project.description}</p>
+
+                  <div class="mt-6 flex items-center gap-3 reveal-up delay-300">
+                    <div class="flex gap-1" data-img-dots>
+                      {displayImages.map((_: string, dotI: number) => (
+                        <div class={`h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20 w-1'}`} data-dot-i={dotI}></div>
+                      ))}
+                      {hasMore && <div class="h-1 w-1 rounded-full bg-white/10"></div>}
+                    </div>
+                    <span class="text-[10px] font-mono text-zinc-600 tracking-widest">{allImages.length} FOTO {hasMore ? `· ${displayImages.length} DITAMPILKAN` : ''}</span>
+                  </div>
+
+                  {hasMore && (
+                    <button
+                      class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer"
+                      data-open-all-images={JSON.stringify(allImages)}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
+                      Lihat semua {allImages.length} foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </section>
         );
       })}
     </main>
 
-    <!-- CONTACT -->
     <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
       <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
       <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
@@ -927,9 +631,7 @@ const MAX_SCROLL_IMAGES = 3;
           <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-600 mb-4 reveal-up">Kolaborasi</p>
           <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
           <div class="w-16 h-px bg-white/20 mb-8 line-draw"></div>
-          <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">
-            Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.
-          </p>
+          <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.</p>
           <form id="wa-form" class="space-y-4 w-full max-w-lg reveal-up delay-150" novalidate>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
@@ -958,7 +660,6 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </section>
 
-    <!-- FOOTER -->
     <footer id="site-footer">
       <div class="footer-inner">
         <div>
@@ -977,13 +678,8 @@ const MAX_SCROLL_IMAGES = 3;
           </div>
         </div>
         <div class="footer-right">
-          <div class="footer-status">
-            <span class="footer-status-dot"></span>
-            Open for collaboration
-          </div>
-          <div class="footer-copy">
-            © 2026 <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener">Muhammad Abdee Nur Fatih</a>
-          </div>
+          <div class="footer-status"><span class="footer-status-dot"></span>Open for collaboration</div>
+          <div class="footer-copy">© 2026 <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener">Muhammad Abdee Nur Fatih</a></div>
         </div>
       </div>
       <div class="footer-divider"></div>
@@ -997,16 +693,13 @@ const MAX_SCROLL_IMAGES = 3;
       </div>
     </footer>
 
-    <!-- AUDIO & FLOATING ACTIONS -->
     <audio id="bg-music" loop preload="none">
       <source src="/audio/soundtrack.mp3" type="audio/mpeg" />
     </audio>
     
     <div class="fab-container">
       <button id="back-to-top" class="fab" aria-label="Kembali ke atas">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="18 15 12 9 6 15"></polyline>
-        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
       </button>
       <button id="music-toggle" class="fab" aria-label="Toggle Music">
         <svg id="music-icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -1014,7 +707,6 @@ const MAX_SCROLL_IMAGES = 3;
       </button>
     </div>
 
-    <!-- LIGHTBOX -->
     <div id="lightbox" class="fixed inset-0 z-[999] hidden items-center justify-center" role="dialog" aria-modal="true" aria-label="Image viewer">
       <div class="lightbox-bg"></div>
       <div class="absolute top-4 left-4 md:top-6 md:left-6 flex items-center bg-zinc-900/70 backdrop-blur-md border border-white/[0.08] rounded-xl p-1 z-50 gap-1">
@@ -1035,7 +727,6 @@ const MAX_SCROLL_IMAGES = 3;
       <div id="lightbox-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-zinc-400 text-xs font-mono tracking-widest bg-zinc-900/70 border border-white/[0.08] px-4 py-2 rounded-full backdrop-blur-md z-50">1 / 1</div>
     </div>
 
-    <!-- SCRIPTS -->
     <script>
       document.addEventListener('astro:page-load', () => {
 
@@ -1054,10 +745,7 @@ const MAX_SCROLL_IMAGES = 3;
             scrollTicking = false;
           };
           window.addEventListener('scroll', () => {
-            if (!scrollTicking) {
-              requestAnimationFrame(update);
-              scrollTicking = true;
-            }
+            if (!scrollTicking) { requestAnimationFrame(update); scrollTicking = true; }
           }, { passive: true });
           update();
         }
@@ -1100,87 +788,117 @@ const MAX_SCROLL_IMAGES = 3;
 
         // ── 5. FILTER ─────────────────────────────────────────────
         const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
-        const filterNav  = qs('#filter-nav') as HTMLElement;
-
         const scrollBtnIntoView = (btn: HTMLElement) => {
           const track = qs('#filter-nav-track') as HTMLElement;
           if (!track) return;
-          const btnLeft   = btn.offsetLeft;
-          const btnWidth  = btn.offsetWidth;
-          const trackW    = track.clientWidth;
-          const targetScroll = btnLeft - (trackW / 2) + (btnWidth / 2);
-          track.scrollTo({ left: targetScroll, behavior: 'smooth' });
+          const btnLeft = btn.offsetLeft, btnWidth = btn.offsetWidth, trackW = track.clientWidth;
+          track.scrollTo({ left: btnLeft - (trackW / 2) + (btnWidth / 2), behavior: 'smooth' });
         };
-
         const setActiveFilter = (targetBtn: HTMLElement) => {
           filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
           targetBtn.setAttribute('data-active', 'true');
           scrollBtnIntoView(targetBtn);
           const filter = targetBtn.getAttribute('data-filter');
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
-            s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'flex' : 'none';
+            s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'block' : 'none';
           });
-          // Re-trigger 3D updates
-          update3DScroll();
+          cache3DSections(); // Re-cache setelah filter berubah
         };
-
         filterBtns.forEach(btn => btn.addEventListener('click', () => setActiveFilter(btn)));
-
         const initActive = qs('.filter-btn[data-active="true"]') as HTMLElement | null;
         if (initActive) requestAnimationFrame(() => scrollBtnIntoView(initActive));
 
-        // ── 6. 3D SCROLLYTELLING & PARALLAX ───────────────────────
-        let ticking3D = false;
-        const update3DScroll = () => {
-          const projectSections = qsa('.project-section') as NodeListOf<HTMLElement>;
-          const winH = window.innerHeight;
-
-          projectSections.forEach(section => {
-            if (section.style.display === 'none') return;
-            
-            const imgWrappers = section.querySelectorAll('.parallax-img-wrapper');
-            const rect = section.getBoundingClientRect();
-
-            if (rect.top < winH && rect.bottom > 0) {
-              const scrollable = Math.max(rect.height - winH, 1);
-              const scrolled = Math.min(Math.max(-rect.top, 0), scrollable);
-              const progress = scrolled / scrollable;
-              
-              imgWrappers.forEach((img, i) => {
-                const seg = 1 / imgWrappers.length;
-                const center = (i * seg) + (seg / 2);
-                const dist = (progress - center) / seg; // Negative = past, Positive = future
-                
-                if (Math.abs(dist) < 1.5) {
-                  const rotateX = dist * 15; 
-                  const scale = 1 - Math.abs(dist) * 0.08;
-                  const opacity = 1 - Math.abs(dist) * 0.6;
-                  
-                  // Desktop parallax offset tweak
-                  let translateY = 0;
-                  if (!isMobile()) {
-                    translateY = (-rect.top / winH) * 20;
-                  }
-                  
-                  img.style.transform = `translateY(${translateY}px) rotateX(${rotateX}deg) scale(${scale})`;
-                  img.style.opacity = Math.max(0, opacity).toString();
-                } else {
-                  img.style.opacity = '0';
-                }
-              });
-            }
+        // ── 6. 3D SCROLLYTELLING ENGINE ───────────────────────────
+        let sections3DData: { el: HTMLElement; top: number; height: number; cards: HTMLElement[]; dots: HTMLElement[] }[] = [];
+        
+        const cache3DSections = () => {
+          sections3DData = [];
+          qsa('.project-section').forEach(sec => {
+            sections3DData.push({
+              el: sec as HTMLElement,
+              top: sec.offsetTop,
+              height: sec.offsetHeight,
+              cards: Array.from(sec.querySelectorAll('.img-3d-card')) as HTMLElement[],
+              dots: Array.from(sec.querySelectorAll('[data-dot-i]')) as HTMLElement[]
+            });
           });
-          ticking3D = false;
+        };
+        cache3DSections();
+        window.addEventListener('resize', cache3DSections, { passive: true });
+
+        let scroll3DTicking = false;
+        const update3DScroll = () => {
+          const winH = window.innerHeight;
+          const scrollY = window.scrollY;
+          const isMobileView = isMobile();
+
+          sections3DData.forEach(data => {
+            if (data.el.style.display === 'none') return;
+            
+            const { top, height, cards, dots } = data;
+            // Skip jika di luar viewport
+            if (scrollY + winH < top || scrollY > top + height) { scroll3DTicking = false; return; }
+            
+            const scrollable = Math.max(height - winH, 1);
+            const progress = Math.max(0, Math.min(1, (scrollY - top) / scrollable));
+            const N = cards.length;
+            
+            let activeIndex = 0;
+
+            cards.forEach((card, i) => {
+              const focus = progress * (N - 1);
+              const dist = i - focus; 
+              const absDist = Math.abs(dist);
+              
+              // Tentukan index aktif untuk dots
+              if (absDist < 0.5) activeIndex = i;
+
+              // Jika lebih dari 1.5 jauhnya, sembunyikan untuk hemat performa
+              if (absDist > 1.5) {
+                card.style.opacity = '0';
+                card.style.pointerEvents = 'none';
+                return;
+              }
+
+              // Konfigurasi 3D berbeda untuk mobile & desktop
+              const zTranslation = -absDist * (isMobileView ? 250 : 400);
+              const yRotation = dist * (isMobileView ? 20 : 30);
+              const xTranslation = dist * (isMobileView ? 50 : 100);
+              const opacity = Math.max(0, 1 - absDist * 0.6);
+              const scale = 1 - absDist * 0.05;
+
+              // Base transform harus maintain translate(-50%, -50%) agar tetap di tengah
+              card.style.transform = `translate(-50%, -50%) translate3d(${xTranslation}px, 0, ${zTranslation}px) rotateY(${yRotation}deg) scale(${scale})`;
+              card.style.opacity = opacity.toString();
+              card.style.zIndex = (100 - Math.round(absDist * 10)).toString();
+              
+              // Hanya kartu aktif yang bisa diklik
+              card.style.pointerEvents = absDist < 0.5 ? 'auto' : 'none';
+            });
+
+            // Update dots di text panel
+            dots.forEach((dot, i) => {
+              if (i === activeIndex) {
+                dot.classList.remove('bg-white/20', 'w-1');
+                dot.classList.add('bg-white/60', 'w-3');
+              } else {
+                dot.classList.remove('bg-white/60', 'w-3');
+                dot.classList.add('bg-white/20', 'w-1');
+              }
+            });
+          });
+          scroll3DTicking = false;
         };
 
         if (!prefersReducedMotion) {
           window.addEventListener('scroll', () => {
-            if (!ticking3D) {
+            if (!scroll3DTicking) {
               requestAnimationFrame(update3DScroll);
-              ticking3D = true;
+              scroll3DTicking = true;
             }
           }, { passive: true });
-          update3DScroll();
+          // Initial trigger
+          requestAnimationFrame(update3DScroll);
         }
 
         // ── 7. MUSIC ──────────────────────────────────────────────
