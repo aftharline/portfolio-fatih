@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import { Boxes } from '../components/ui/background-boxes';
+import { PixelHero } from '../components/ui/pixel-perfect-hero';
 import { SplineScene } from '../components/ui/spline-scene';
 import '../styles/global.css';
 import { createClient } from '@supabase/supabase-js';
@@ -175,9 +176,7 @@ const MAX_SCROLL_IMAGES = 3;
          UI ELEMENTS & MAGNETIC BUTTONS
       ============================================================ */
       .magnetic { position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
-      .dock-icon { transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
-      .dock-icon:hover { transform: scale(1.4) translateY(-8px); margin: 0 12px; }
-
+      
       #dot-nav { position: fixed; right: 1.25rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 60; pointer-events: none; }
       @media (max-width: 767px) { #dot-nav { display: none; } }
       .dot-nav-item { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; cursor: none; }
@@ -189,34 +188,23 @@ const MAX_SCROLL_IMAGES = 3;
       #crosshair-v { top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent); }
       #cursor-coords { position: fixed; pointer-events: none; z-index: 10; font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255,255,255,0.3); opacity: 0; transition: opacity 0.3s; letter-spacing: 0.1em; will-change: transform; }
 
-      #filter-nav { top: 56px; } #filter-nav-track { position: relative; }
-      .filter-btn { position: relative; overflow: hidden; isolation: isolate; transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s; }
-      .filter-btn:active { transform: scale(0.95); }
-      .filter-btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.05); opacity: 0; transition: opacity 0.25s; border-radius: inherit; }
-      .filter-btn:hover::before { opacity: 1; }
-      .filter-btn[data-active="true"] { box-shadow: 0 0 12px rgba(255,255,255,0.15); }
-
-      #site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; background: rgba(9,9,11,0.72); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.4s, border-color 0.4s; }
-      #site-header.scrolled { background: rgba(9,9,11,0.92); border-bottom-color: rgba(255,255,255,0.08); }
-      .header-logo { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-decoration: none; transition: color 0.2s; }
-      .header-logo:hover { color: white; } .header-logo span { color: rgba(255,255,255,0.3); font-weight: 400; }
-      .header-links { display: flex; align-items: center; gap: 0.25rem; }
-      .header-link { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 999px; transition: color 0.2s, background 0.2s; }
-      .header-link:hover { color: white; background: rgba(255,255,255,0.06); }
-      .header-cta { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: black; background: white; padding: 0.45rem 1rem; border-radius: 999px; text-decoration: none; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; margin-left: 0.5rem; }
-      .header-cta:hover { background: #e5e5e5; box-shadow: 0 0 20px rgba(255,255,255,0.15); }
-      @media (max-width: 767px) { .header-links .header-link { display: none; } }
-
-      /* macOS DOCK */
+      /* macOS DOCK & FILTERS */
       #mac-dock {
         position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%); z-index: 100;
         background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 1.5rem;
-        display: flex; align-items: center; gap: 0.5rem;
+        display: flex; align-items: center; gap: 0.5rem; max-width: calc(100vw - 2rem);
         box-shadow: 0 20px 40px rgba(0,0,0,0.5);
       }
-      #mac-dock a { background: rgba(39, 39, 42, 0.8); padding: 0.75rem; border-radius: 9999px; color: white; display: flex; align-items: center; justify-content: center; }
-      #mac-dock a:hover { background: white; color: black; }
+      .dock-icons { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
+      .dock-icon { transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(39, 39, 42, 0.8); padding: 0.65rem; border-radius: 9999px; color: white; display: flex; align-items: center; justify-content: center; }
+      .dock-icon:hover { transform: scale(1.3) translateY(-8px); margin: 0 4px; background: white; color: black; }
+      
+      .dock-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 0.25rem; }
+      .dock-filters { display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; }
+      .filter-btn { position: relative; overflow: hidden; isolation: isolate; transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s; padding: 0.5rem 0.8rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.6); border: 1px solid transparent; white-space: nowrap; background: transparent; }
+      .filter-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+      .filter-btn[data-active="true"] { background: white; color: black; }
 
       .glass-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.875rem; color: white; width: 100%; outline: none; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; -webkit-appearance: none; }
       .glass-input::placeholder { color: rgba(255,255,255,0.25); }
@@ -232,8 +220,8 @@ const MAX_SCROLL_IMAGES = 3;
       #img-zoom-wrapper { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
       .lightbox-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
-      .fab-container { position: fixed; bottom: 6rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
-      @media (min-width: 768px) { .fab-container { bottom: 6.5rem; right: 2.5rem; } }
+      .fab-container { position: fixed; bottom: 5.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
+      @media (min-width: 768px) { .fab-container { bottom: 6rem; right: 2.5rem; } }
       .fab { width: 44px; height: 44px; border-radius: 50%; background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       @media (min-width: 768px) { .fab { width: 48px; height: 48px; } }
       .fab:hover { background: white; color: black; box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: translateY(-2px); }
@@ -253,7 +241,7 @@ const MAX_SCROLL_IMAGES = 3;
     </style>
   </head>
 
-  <body class="bg-[#09090b] text-zinc-300 font-sans antialiased selection:bg-white selection:text-black pb-32 overflow-x-hidden">
+  <body class="bg-[#09090b] text-zinc-300 font-sans antialiased selection:bg-white selection:text-black overflow-x-hidden">
 
     <!-- Preloader -->
     <div id="preloader">
@@ -269,19 +257,6 @@ const MAX_SCROLL_IMAGES = 3;
 
     <div id="scroll-progress" aria-hidden="true"></div>
 
-    <header id="site-header">
-      <a href="#" class="header-logo magnetic">Fatih <span>/ Portfolio</span></a>
-      <nav class="header-links">
-        <a href="#projects-container" class="header-link magnetic">Karya</a>
-        <a href="#wa-form" class="header-link magnetic">Kontak</a>
-        <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="header-link hidden md:inline-flex items-center gap-1.5 magnetic">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-          Instagram
-        </a>
-        <a href="#wa-form" class="header-cta magnetic">Kolaborasi ↗</a>
-      </nav>
-    </header>
-
     <nav id="dot-nav" aria-hidden="true">
       {projects && projects.map((_, i) => (
         <div class="dot-nav-item" data-dot={i} title={`Project ${i + 1}`}></div>
@@ -296,25 +271,23 @@ const MAX_SCROLL_IMAGES = 3;
     <div class="fixed inset-0 -z-40 bg-zinc-950/60 pointer-events-none" aria-hidden="true"></div>
 
     <main class="relative z-10">
-      <!-- HERO SECTION -->
-      <section id="home" class="min-h-[100svh] flex flex-col justify-center items-center text-center px-6 relative overflow-hidden pt-14">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-zinc-800/30 blur-[120px] rounded-full -z-10 pointer-events-none"></div>
-        <div class="reveal-up">
-          <img src="/profile.png" alt="Muhammad Fatih" class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover mx-auto mb-8 border border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.1)]" />
-          <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">Muhammad Fatih</h1>
-          <p class="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto font-light leading-relaxed mb-10">
-            Membangun sistem melalui teknologi. <br class="hidden md:block" />
-            Membangun dampak melalui komunikasi dan kepemimpinan.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button id="hero-cta-portfolio" class="px-8 py-4 bg-white text-black font-semibold rounded-full hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] magnetic">
-              Lihat Portofolio <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-            </button>
-            <a href="#about" class="px-8 py-4 bg-zinc-900 border border-white/10 text-white font-semibold rounded-full hover:bg-zinc-800 transition-colors magnetic">
-              Kenali Lebih Jauh
-            </a>
-          </div>
-        </div>
+      <!-- HERO SECTION (RESTORED) -->
+      <section id="home" class="relative z-10 w-full border-b border-white/5">
+        <PixelHero
+          client:load
+          word1="Muhammad"
+          word2="Fatih."
+          description="Eksplorasi desain visual, jiwa kepemimpinan, apresiasi budaya, dan teknologi informasi. Selamat datang di halaman portofolio saya, suatu kehormatan bisa berkolaborasi dengan Anda."
+          primaryCta="Jelajahi Karya"
+          primaryCtaMobile="Jelajahi"
+          secondaryCta="Mari Berkolaborasi"
+          secondaryCtaMobile="Kontak"
+          onPrimaryClick={() => {
+            const el = document.getElementById('projects-container');
+            if (el) window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+          }}
+          githubUrl="#wa-form"
+        />
       </section>
 
       <!-- MARQUEE -->
@@ -411,22 +384,6 @@ const MAX_SCROLL_IMAGES = 3;
         </div>
       </section>
 
-      <!-- FILTER NAV -->
-      <nav id="filter-nav" class="sticky top-[56px] z-[150] py-3 bg-zinc-950/90 backdrop-blur-2xl border-b border-white/[0.06] reveal-up no-scrollbar overflow-hidden">
-        <div class="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
-        <div class="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
-        <div id="filter-nav-track" class="flex justify-start md:justify-center gap-2 overflow-x-auto px-6 no-scrollbar relative">
-          {categories.map((cat) => {
-            const count = cat === 'All' ? (projects?.length ?? 0) : (projects?.filter(p => p.category === cat).length ?? 0);
-            return (
-              <button data-filter={cat} class="filter-btn magnetic flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] md:text-xs font-semibold tracking-widest uppercase border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white" data-active={cat === 'All'}>
-                {cat}<span class="font-mono text-[9px] opacity-50 tabular-nums">{count}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
       <!-- PROJECTS 3D COVERFLOW -->
       <main class="relative w-full" id="projects-container">
         {projects && projects.map((project, index) => {
@@ -512,8 +469,8 @@ const MAX_SCROLL_IMAGES = 3;
         </div>
       </section>
 
-      <!-- EPIC FOOTER -->
-      <footer id="connect" class="pt-32 pb-40 px-6 text-center relative overflow-hidden">
+      <!-- EPIC FOOTER (Fixed Gap) -->
+      <footer id="connect" class="pt-32 pb-24 px-6 text-center relative overflow-hidden">
         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-white/5 blur-[150px] rounded-full -z-10"></div>
         <div class="max-w-3xl mx-auto reveal-up">
           <h2 class="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tighter">Let's Create <br/> Meaningful Impact.</h2>
@@ -536,13 +493,27 @@ const MAX_SCROLL_IMAGES = 3;
       </footer>
     </main>
 
-    <!-- macOS DOCK NAVIGATION -->
-    <nav id="mac-dock">
-      <a href="#home" class="dock-icon magnetic" aria-label="Home"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a>
-      <a href="#about" class="dock-icon magnetic" aria-label="About"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></a>
-      <a href="#journey" class="dock-icon magnetic" aria-label="Journey"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></a>
-      <a href="#projects-container" class="dock-icon magnetic" aria-label="Projects"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></a>
-      <a href="#connect" class="dock-icon magnetic" aria-label="Contact"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
+    <!-- macOS DOCK NAVIGATION & FILTERS -->
+    <nav id="mac-dock" class="no-scrollbar">
+      <div class="dock-icons">
+        <a href="#home" class="dock-icon magnetic" aria-label="Home"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a>
+        <a href="#about" class="dock-icon magnetic" aria-label="About"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></a>
+        <a href="#journey" class="dock-icon magnetic" aria-label="Journey"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></a>
+        <a href="#projects-container" class="dock-icon magnetic" aria-label="Projects"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></a>
+        <a href="#connect" class="dock-icon magnetic" aria-label="Contact"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
+        <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" class="dock-icon magnetic" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg></a>
+      </div>
+      <div class="dock-divider"></div>
+      <div id="dock-filters" class="dock-filters no-scrollbar">
+        {categories.map((cat) => {
+          const count = cat === 'All' ? (projects?.length ?? 0) : (projects?.filter(p => p.category === cat).length ?? 0);
+          return (
+            <button data-filter={cat} class="filter-btn magnetic" data-active={cat === 'All'}>
+              {cat}<span class="font-mono text-[9px] opacity-50 tabular-nums ml-1">{count}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
 
     <audio id="bg-music" loop preload="none"><source src="/audio/soundtrack.mp3" type="audio/mpeg" /></audio>
@@ -590,9 +561,8 @@ const MAX_SCROLL_IMAGES = 3;
         // Scroll to Projects
         const scrollToProjects = () => {
           const el = document.getElementById('projects-container');
-          if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - (56 + 48 + 8); window.scrollTo({ top: y, behavior: 'smooth' }); }
+          if (el) window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
         };
-        document.getElementById('hero-cta-portfolio')?.addEventListener('click', scrollToProjects);
         document.getElementById('footer-cta-portfolio')?.addEventListener('click', scrollToProjects);
 
         // ── 1. CUSTOM CURSOR & MAGNETIC BUTTONS ──────────────────
@@ -627,14 +597,12 @@ const MAX_SCROLL_IMAGES = 3;
         );
         qsa('.reveal-up, .reveal-right, .line-draw').forEach(el => revealObs.observe(el));
 
-        // ── 3. FILTER ────────────────────────────────────────────
+        // ── 3. FILTER (Moved to Dock) ────────────────────────────
         const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
         const setActiveFilter = (targetBtn: HTMLElement) => {
           filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
           targetBtn.setAttribute('data-active', 'true');
-          const track = qs('#filter-nav-track') as HTMLElement;
-          const btnLeft = targetBtn.offsetLeft, btnWidth = targetBtn.offsetWidth, trackW = track.clientWidth;
-          track.scrollTo({ left: btnLeft - (trackW / 2) + (btnWidth / 2), behavior: 'smooth' });
+          targetBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
           const filter = targetBtn.getAttribute('data-filter');
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
             s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'block' : 'none';
@@ -652,7 +620,6 @@ const MAX_SCROLL_IMAGES = 3;
         const tunnelTrack = qs('#tunnel-track') as HTMLElement;
         const tunnelQuote = qs('#tunnel-quote') as HTMLElement;
         const progressBar = qs('#scroll-progress') as HTMLElement;
-        const siteHeader = qs('#site-header') as HTMLElement;
 
         const cacheMetrics = () => {
           metrics = [];
@@ -692,7 +659,6 @@ const MAX_SCROLL_IMAGES = 3;
 
           const max = document.documentElement.scrollHeight - winH;
           progressBar.style.width = max > 0 ? `${(scrollY / max) * 100}%` : '0%';
-          siteHeader.classList.toggle('scrolled', scrollY > 40);
 
           if (!isMobile()) {
             rX = lerp(rX, mX, 0.2); rY = lerp(rY, mY, 0.2);
