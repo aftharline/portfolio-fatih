@@ -30,7 +30,7 @@ const MAX_SCROLL_IMAGES = 3;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Fatih | Complete Portfolio</title>
-    <meta name="description" content="Software Engineering Student, Leadership Enthusiast, Pageant Person, and Public Speaker." />
+    <meta name="description" content="Eksplorasi karya dan proses Fatih." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://prod.spline.design" />
@@ -127,7 +127,7 @@ const MAX_SCROLL_IMAGES = 3;
       .line-draw.in-view { transform: scaleX(1); }
 
       /* ============================================================
-         3D COVERFLOW SCROLLYTELLING
+         3D COVERFLOW SCROLLYTELLING (Optimized & Fixed Mobile Layout)
       ============================================================ */
       .project-section { position: relative; height: calc(var(--display-count) * 100svh); z-index: 1; contain: layout paint style; }
       .project-sticky-view {
@@ -137,6 +137,7 @@ const MAX_SCROLL_IMAGES = 3;
       }
       .project-bg-glow { position: absolute; width: 80%; height: 60%; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%); filter: blur(60px); z-index: 0; pointer-events: none; }
       .image-3d-container { position: absolute; inset: 0; transform-style: preserve-3d; z-index: 10; pointer-events: none; }
+      
       .img-3d-card {
         position: absolute; top: 50%; left: 50%; width: 85%; max-width: 550px; height: 65%; border-radius: 16px; overflow: hidden;
         pointer-events: none; backface-visibility: hidden; background: #18181b;
@@ -146,15 +147,18 @@ const MAX_SCROLL_IMAGES = 3;
       }
       .img-3d-card[data-active="true"] { box-shadow: 0 0 80px 10px rgba(255,255,255,0.08), 0 30px 60px -15px rgba(0,0,0,0.8); }
       .img-3d-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+      
       .img-3d-dim { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.75); z-index: 2; opacity: 1; pointer-events: none; transition: opacity 0.3s ease; }
       .img-3d-card[data-active="true"] .img-3d-dim { opacity: 0; }
       .img-3d-gloss { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.3) 100%); pointer-events: none; z-index: 3; }
+
+      /* Text Panel: Mobile Fixed Layout */
       .text-panel {
         position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
         z-index: 20; pointer-events: none;
         background: linear-gradient(to top, rgba(9,9,11,1) 10%, transparent 100%);
         display: flex; flex-direction: column; justify-content: flex-end;
-        padding: 1.5rem 1.5rem 5rem;
+        padding: 1.5rem 1.5rem 5rem; /* Extra bottom padding to clear FABs */
       }
       @media (min-width: 768px) {
         .img-3d-card { left: 65%; max-width: 600px; height: 70%; }
@@ -176,7 +180,6 @@ const MAX_SCROLL_IMAGES = 3;
          UI ELEMENTS & MAGNETIC BUTTONS
       ============================================================ */
       .magnetic { position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
-      
       #dot-nav { position: fixed; right: 1.25rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 60; pointer-events: none; }
       @media (max-width: 767px) { #dot-nav { display: none; } }
       .dot-nav-item { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; cursor: none; }
@@ -188,23 +191,23 @@ const MAX_SCROLL_IMAGES = 3;
       #crosshair-v { top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent); }
       #cursor-coords { position: fixed; pointer-events: none; z-index: 10; font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255,255,255,0.3); opacity: 0; transition: opacity 0.3s; letter-spacing: 0.1em; will-change: transform; }
 
-      /* macOS DOCK & FILTERS */
-      #mac-dock {
-        position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%); z-index: 100;
-        background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 1.5rem;
-        display: flex; align-items: center; gap: 0.5rem; max-width: calc(100vw - 2rem);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-      }
-      .dock-icons { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
-      .dock-icon { transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(39, 39, 42, 0.8); padding: 0.65rem; border-radius: 9999px; color: white; display: flex; align-items: center; justify-content: center; }
-      .dock-icon:hover { transform: scale(1.3) translateY(-8px); margin: 0 4px; background: white; color: black; }
-      
-      .dock-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 0.25rem; }
-      .dock-filters { display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; }
-      .filter-btn { position: relative; overflow: hidden; isolation: isolate; transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s; padding: 0.5rem 0.8rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.6); border: 1px solid transparent; white-space: nowrap; background: transparent; }
-      .filter-btn:hover { background: rgba(255,255,255,0.1); color: white; }
-      .filter-btn[data-active="true"] { background: white; color: black; }
+      #filter-nav { top: 56px; } #filter-nav-track { position: relative; }
+      .filter-btn { position: relative; overflow: hidden; isolation: isolate; transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.15s; }
+      .filter-btn:active { transform: scale(0.95); }
+      .filter-btn::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.05); opacity: 0; transition: opacity 0.25s; border-radius: inherit; }
+      .filter-btn:hover::before { opacity: 1; }
+      .filter-btn[data-active="true"] { box-shadow: 0 0 12px rgba(255,255,255,0.15); }
+
+      #site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; background: rgba(9,9,11,0.72); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.4s, border-color 0.4s; }
+      #site-header.scrolled { background: rgba(9,9,11,0.92); border-bottom-color: rgba(255,255,255,0.08); }
+      .header-logo { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-decoration: none; transition: color 0.2s; }
+      .header-logo:hover { color: white; } .header-logo span { color: rgba(255,255,255,0.3); font-weight: 400; }
+      .header-links { display: flex; align-items: center; gap: 0.25rem; }
+      .header-link { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 999px; transition: color 0.2s, background 0.2s; }
+      .header-link:hover { color: white; background: rgba(255,255,255,0.06); }
+      .header-cta { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: black; background: white; padding: 0.45rem 1rem; border-radius: 999px; text-decoration: none; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; margin-left: 0.5rem; }
+      .header-cta:hover { background: #e5e5e5; box-shadow: 0 0 20px rgba(255,255,255,0.15); }
+      @media (max-width: 767px) { .header-links .header-link { display: none; } }
 
       .glass-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.875rem; color: white; width: 100%; outline: none; transition: border-color 0.3s, background 0.3s, box-shadow 0.3s; -webkit-appearance: none; }
       .glass-input::placeholder { color: rgba(255,255,255,0.25); }
@@ -214,14 +217,15 @@ const MAX_SCROLL_IMAGES = 3;
       .btn-submit::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); transform: translateX(-100%); transition: transform 0.6s; }
       .btn-submit:hover::before { transform: translateX(100%); }
 
+      /* LIGHTBOX (Smooth Fade & Scale) */
       #lightbox { contain: layout style; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
       #lightbox:not(.hidden) { display: flex; opacity: 1; }
       #lightbox.hidden { display: none; }
       #img-zoom-wrapper { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
       .lightbox-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
-      .fab-container { position: fixed; bottom: 5.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
-      @media (min-width: 768px) { .fab-container { bottom: 6rem; right: 2.5rem; } }
+      .fab-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; }
+      @media (min-width: 768px) { .fab-container { bottom: 2.5rem; right: 2.5rem; } }
       .fab { width: 44px; height: 44px; border-radius: 50%; background: rgba(24, 24, 27, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       @media (min-width: 768px) { .fab { width: 48px; height: 48px; } }
       .fab:hover { background: white; color: black; box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: translateY(-2px); }
@@ -229,6 +233,34 @@ const MAX_SCROLL_IMAGES = 3;
       .fab#back-to-top.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
       .fab#music-toggle.playing::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); animation: pulse-ring 1.5s ease-out infinite; }
       @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+
+      #site-footer { position: relative; z-index: 50; background: #09090b; border-top: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+      .footer-inner { max-width: 80rem; margin: 0 auto; padding: 3rem 1.5rem 2rem; display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
+      @media (min-width: 768px) { .footer-inner { grid-template-columns: 1fr auto; gap: 3rem; align-items: end; } }
+      .footer-brand-name { font-size: clamp(2rem, 8vw, 3.5rem); font-weight: 900; letter-spacing: -0.02em; color: rgba(255,255,255,0.06); line-height: 1; text-transform: uppercase; pointer-events: none; user-select: none; }
+      .footer-tagline { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-top: 0.5rem; }
+      .footer-socials { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+      .footer-social-link { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.35); text-decoration: none; transition: border-color 0.25s, color 0.25s, background 0.25s; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
+      .footer-social-link:hover { border-color: rgba(255,255,255,0.3); color: white; background: rgba(255,255,255,0.05); }
+      .footer-right { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      @media (min-width: 768px) { .footer-right { align-items: flex-end; } }
+      .footer-copy { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.18); }
+      .footer-copy a { color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
+      .footer-copy a:hover { color: rgba(255,255,255,0.75); }
+      .footer-status { display: flex; align-items: center; gap: 0.4rem; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.25); }
+      .footer-status-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; animation: pulse-dot 2.5s ease-in-out infinite; }
+      @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      .footer-divider { height: 1px; background: rgba(255,255,255,0.04); margin: 0; }
+      .footer-bottom { padding: 1rem 1.5rem; max-width: 80rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      @media (min-width: 768px) { .footer-bottom { flex-direction: row; justify-content: space-between; align-items: center; } }
+      .footer-nav-links { display: flex; gap: 1.25rem; }
+      .footer-nav-link { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); text-decoration: none; transition: color 0.2s; }
+      .footer-nav-link:hover { color: rgba(255,255,255,0.6); }
+
+      @supports (padding: env(safe-area-inset-bottom)) {
+        .fab-container { bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+        nav#filter-nav { padding-left: max(1.5rem, env(safe-area-inset-left)); padding-right: max(1.5rem, env(safe-area-inset-right)); }
+      }
 
       @media (prefers-reduced-motion: reduce) {
         .project-section, #philosophy-section { height: auto; contain: none; }
@@ -241,7 +273,7 @@ const MAX_SCROLL_IMAGES = 3;
     </style>
   </head>
 
-  <body class="bg-[#09090b] text-zinc-300 font-sans antialiased selection:bg-white selection:text-black overflow-x-hidden">
+  <body class="bg-zinc-950 text-white font-sans selection:bg-white selection:text-black overflow-x-hidden">
 
     <!-- Preloader -->
     <div id="preloader">
@@ -257,6 +289,19 @@ const MAX_SCROLL_IMAGES = 3;
 
     <div id="scroll-progress" aria-hidden="true"></div>
 
+    <header id="site-header">
+      <a href="#" class="header-logo magnetic">Fatih <span>/ Portfolio</span></a>
+      <nav class="header-links">
+        <a href="#projects-container" class="header-link magnetic">Karya</a>
+        <a href="#wa-form" class="header-link magnetic">Kontak</a>
+        <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="header-link hidden md:inline-flex items-center gap-1.5 magnetic">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Instagram
+        </a>
+        <a href="#wa-form" class="header-cta magnetic">Kolaborasi ↗</a>
+      </nav>
+    </header>
+
     <nav id="dot-nav" aria-hidden="true">
       {projects && projects.map((_, i) => (
         <div class="dot-nav-item" data-dot={i} title={`Project ${i + 1}`}></div>
@@ -270,251 +315,148 @@ const MAX_SCROLL_IMAGES = 3;
     </div>
     <div class="fixed inset-0 -z-40 bg-zinc-950/60 pointer-events-none" aria-hidden="true"></div>
 
-    <main class="relative z-10">
-      <!-- HERO SECTION (RESTORED) -->
-      <section id="home" class="relative z-10 w-full border-b border-white/5">
-        <PixelHero
-          client:load
-          word1="Muhammad"
-          word2="Fatih."
-          description="Eksplorasi desain visual, jiwa kepemimpinan, apresiasi budaya, dan teknologi informasi. Selamat datang di halaman portofolio saya, suatu kehormatan bisa berkolaborasi dengan Anda."
-          primaryCta="Jelajahi Karya"
-          primaryCtaMobile="Jelajahi"
-          secondaryCta="Mari Berkolaborasi"
-          secondaryCtaMobile="Kontak"
-          onPrimaryClick={() => {
-            const el = document.getElementById('projects-container');
-            if (el) window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
-          }}
-          githubUrl="#wa-form"
-        />
-      </section>
+    <div class="relative z-10 w-full border-b border-white/5 pt-14">
+      <PixelHero
+        client:load word1="Muhammad" word2="Fatih."
+        description="Eksplorasi desain visual, jiwa kepemimpinan, apresiasi budaya, dan teknologi informasi. Selamat datang di halaman portofolio saya, suatu kehormatan bisa berkolaborasi dengan Anda."
+        primaryCta="Jelajahi Karya" primaryCtaMobile="Jelajahi"
+        secondaryCta="Mari Berkolaborasi" secondaryCtaMobile="Kontak"
+        onPrimaryClick={() => {
+          const el = document.getElementById('projects-container');
+          if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - (56 + 48 + 8); window.scrollTo({ top: y, behavior: 'smooth' }); }
+        }}
+        githubUrl="#wa-form"
+      />
+    </div>
 
-      <!-- MARQUEE -->
-      <div id="marquee-section" class="w-full overflow-hidden py-5 md:py-7 z-20 relative" aria-hidden="true">
-        <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
-        <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
-        <div class="animate-marquee">
-          <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none">INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;</span>
-          <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none" aria-hidden="true">INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;</span>
-        </div>
+    <div id="marquee-section" class="w-full overflow-hidden py-5 md:py-7 z-20 relative" aria-hidden="true">
+      <div class="absolute inset-y-0 left-0 w-16 md:w-36 bg-gradient-to-r from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
+      <div class="absolute inset-y-0 right-0 w-16 md:w-36 bg-gradient-to-l from-zinc-950/80 to-transparent z-10 pointer-events-none"></div>
+      <div class="animate-marquee">
+        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none">INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;</span>
+        <span class="text-5xl md:text-7xl font-black text-outline mx-6 uppercase tracking-widest whitespace-nowrap select-none" aria-hidden="true">INFORMATICS EDUCATION &bull; LEADERSHIP ORIENTED &bull; UNESA STUDENT &bull; PAGEANT PERSONA &bull;</span>
       </div>
+    </div>
 
-      <!-- ABOUT SECTION -->
-      <section id="about" class="py-24 px-6 max-w-5xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div class="reveal-up">
-            <h2 class="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">Who I Am.</h2>
-            <p class="text-zinc-400 leading-relaxed text-lg mb-6">
-              Halo, saya Muhammad Fatih. Perjalanan saya mempertemukan dua dunia yang berbeda namun saling melengkapi: <span class="text-white font-medium">logical thinking</span> dari dunia teknologi dan <span class="text-white font-medium">communication skills</span> dari dunia organisasi, pageant, serta public speaking.
-            </p>
-            <p class="text-zinc-400 leading-relaxed text-lg">
-              Bagi saya, teknologi bukan hanya tentang membangun sistem, tetapi juga tentang membangun dampak yang bermanfaat bagi banyak orang. Saya percaya pertumbuhan sejati terjadi ketika kita berani keluar dari zona nyaman.
-            </p>
-          </div>
-          <div class="grid grid-cols-2 gap-4 reveal-up">
-            <div class="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 backdrop-blur-sm">
-              <h3 class="text-white font-medium mb-1 text-lg">Tech</h3>
-              <p class="text-sm text-zinc-500">Software Eng. & AI</p>
-            </div>
-            <div class="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 backdrop-blur-sm">
-              <h3 class="text-white font-medium mb-1 text-lg">Leadership</h3>
-              <p class="text-sm text-zinc-500">Ex-Ketua OSIS</p>
-            </div>
-            <div class="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 backdrop-blur-sm">
-              <h3 class="text-white font-medium mb-1 text-lg">Pageant</h3>
-              <p class="text-sm text-zinc-500">Cultural Advocacy</p>
-            </div>
-            <div class="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 backdrop-blur-sm">
-              <h3 class="text-white font-medium mb-1 text-lg">Speaking</h3>
-              <p class="text-sm text-zinc-500">MC & Moderator</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- JOURNEY (BENTO GRID) -->
-      <section id="journey" class="py-24 px-6 max-w-5xl mx-auto">
-        <h2 class="text-3xl md:text-5xl font-bold text-white mb-12 text-center tracking-tight reveal-up">My Journey.</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(200px,auto)]">
-          <div class="md:col-span-2 bg-gradient-to-br from-zinc-900 to-[#09090b] border border-white/10 p-8 rounded-[2rem] reveal-up group hover:border-white/20 transition-colors">
-            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            </div>
-            <h3 class="text-2xl text-white font-bold mb-3">Technology & Engineering</h3>
-            <p class="text-zinc-400 leading-relaxed">Fokus pada Software Development, Cyber Security, dan Artificial Intelligence. Mengubah ide kompleks menjadi solusi digital inovatif yang siap bersaing di era modern.</p>
-          </div>
-          <div class="bg-gradient-to-br from-zinc-900 to-[#09090b] border border-white/10 p-8 rounded-[2rem] reveal-up group hover:border-white/20 transition-colors">
-            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20"/><path d="m2 4 4.5 16h11L22 4"/></svg>
-            </div>
-            <h3 class="text-xl text-white font-bold mb-3">Pageant & Culture</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Lebih dari sekadar penampilan. Platform untuk membangun advokasi sosial, melestarikan budaya Indonesia, dan memberikan dampak nyata bagi masyarakat.</p>
-          </div>
-          <div class="bg-gradient-to-br from-zinc-900 to-[#09090b] border border-white/10 p-8 rounded-[2rem] reveal-up group hover:border-white/20 transition-colors">
-            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <h3 class="text-xl text-white font-bold mb-3">Leadership</h3>
-            <p class="text-zinc-400 text-sm leading-relaxed">Menjadi Ketua OSIS mengajarkan saya bahwa leadership bukan tentang posisi, melainkan keberanian mengambil keputusan dan menginspirasi kolaborasi.</p>
-          </div>
-          <div class="md:col-span-2 bg-gradient-to-br from-zinc-900 to-[#09090b] border border-white/10 p-8 rounded-[2rem] reveal-up group hover:border-white/20 transition-colors">
-            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-            </div>
-            <h3 class="text-2xl text-white font-bold mb-3">Public Speaking</h3>
-            <p class="text-zinc-400 leading-relaxed">Sebagai MC, Moderator, dan Presenter. Saya merawat keyakinan bahwa ide dan visi yang hebat akan memiliki dampak jauh lebih besar ketika disampaikan dengan energi, kejelasan, dan inspirasi.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- VALUES & MOTTO -->
-      <section class="py-24 px-6 border-y border-white/5 bg-zinc-950/50">
-        <div class="max-w-4xl mx-auto text-center reveal-up">
-          <p class="text-2xl md:text-4xl font-serif italic text-white mb-12 leading-normal">
-            "Becoming better than yesterday, <br class="hidden md:block"/> one step at a time."
-          </p>
-          <div class="flex flex-wrap justify-center gap-3">
-            <span class="px-6 py-3 text-sm md:text-base font-semibold border border-white/10 rounded-full text-zinc-300 bg-zinc-900/80">Growth Mindset</span>
-            <span class="px-6 py-3 text-sm md:text-base font-semibold border border-white/10 rounded-full text-zinc-300 bg-zinc-900/80">Discipline</span>
-            <span class="px-6 py-3 text-sm md:text-base font-semibold border border-white/10 rounded-full text-zinc-300 bg-zinc-900/80">Integrity</span>
-            <span class="px-6 py-3 text-sm md:text-base font-semibold border border-white/10 rounded-full text-zinc-300 bg-zinc-900/80">Excellence</span>
-            <span class="px-6 py-3 text-sm md:text-base font-semibold border border-white/10 rounded-full text-zinc-300 bg-zinc-900/80">Impact</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- PROJECTS 3D COVERFLOW -->
-      <main class="relative w-full" id="projects-container">
-        {projects && projects.map((project, index) => {
-          const allImages = project.image_urls || [''];
-          const displayImages = allImages.slice(0, MAX_SCROLL_IMAGES);
-          const hasMore = allImages.length > MAX_SCROLL_IMAGES;
-          return (
-            <section class="project-section" data-category={project.category} data-project-index={index} style={`--display-count: ${displayImages.length}; z-index: ${index + 10};`}>
-              <div class="project-sticky-view">
-                <div class="project-bg-glow"></div>
-                <div class="image-3d-container">
-                  {displayImages.map((url: string, imgIndex: number) => (
-                    <div class="img-3d-card" data-img-index={imgIndex}>
-                      <img src={url} alt={`${project.title} - foto ${imgIndex + 1}`} class="project-image w-full h-full object-cover cursor-zoom-in" data-images={JSON.stringify(allImages)} data-index={imgIndex} loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'} />
-                      <div class="img-3d-dim"></div><div class="img-3d-gloss"></div>
-                    </div>
-                  ))}
-                </div>
-                <div class="text-panel">
-                  <div class="w-full max-w-lg pointer-events-auto relative">
-                    <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
-                      <span class="project-counter font-mono text-[10px] md:text-xs text-zinc-600 tracking-[0.3em] uppercase">0{index + 1}</span>
-                      <div class="flex-1 h-px bg-white/10 line-draw max-w-[60px]"></div>
-                      {project.category && (<span class="px-2.5 py-0.5 bg-white/5 border border-white/[0.08] rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">{project.category}</span>)}
-                    </div>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white reveal-up delay-100">{project.title}</h2>
-                    <p class="text-zinc-400 text-sm md:text-base leading-relaxed font-light reveal-up delay-200 max-w-md">{project.description}</p>
-                    <div class="mt-6 flex items-center gap-3 reveal-up delay-300">
-                      <div class="flex gap-1" data-img-dots>
-                        {displayImages.map((_: string, dotI: number) => (<div class={`h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20 w-1'}`} data-dot-i={dotI}></div>))}
-                        {hasMore && <div class="h-1 w-1 rounded-full bg-white/10"></div>}
-                      </div>
-                      <span class="text-[10px] font-mono text-zinc-600 tracking-widest">{allImages.length} FOTO {hasMore ? `· ${displayImages.length} DITAMPILKAN` : ''}</span>
-                    </div>
-                    {hasMore && (<button class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer relative z-10" data-open-all-images={JSON.stringify(allImages)}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
-                      Lihat semua {allImages.length} foto
-                    </button>)}
-                  </div>
-                </div>
-              </div>
-            </section>
-          );
-        })}
-      </main>
-
-      <!-- 3D TUNNEL -->
-      <section id="philosophy-section">
-        <div class="philosophy-sticky">
-          <div class="tunnel-track" id="tunnel-track">
-            <span class="tunnel-word" style="transform: translate3d(0, 0, 0px)">VISION</span>
-            <span class="tunnel-word solid" style="transform: translate3d(0, 0, 1200px)">PRECISION</span>
-            <span class="tunnel-word" style="transform: translate3d(0, 0, 2400px)">CULTURE</span>
-            <span class="tunnel-word solid" style="transform: translate3d(0, 0, 3600px)">CODE</span>
-          </div>
-          <div class="tunnel-quote" id="tunnel-quote">
-            "Desain bukan hanya tentang bagaimana terlihat, tapi tentang bagaimana berfungsi. Kode adalah puisi logis yang menghidupkan ide."
-          </div>
-        </div>
-      </section>
-
-      <!-- CONTACT FORM -->
-      <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
-        <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
-        <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
-          <div class="w-full md:w-1/2 text-left z-10">
-            <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-600 mb-4 reveal-up">Kolaborasi</p>
-            <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
-            <div class="w-16 h-px bg-white/20 mb-8 line-draw"></div>
-            <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.</p>
-            <form id="wa-form" class="space-y-4 w-full max-w-lg reveal-up delay-150" novalidate>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1.5"><label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-name">Nama / Instansi</label><input type="text" id="wa-name" placeholder="Misal: Budi / Duta Remaja" required autocomplete="name" class="glass-input" /></div>
-                <div class="flex flex-col gap-1.5"><label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-topic">Topik Diskusi</label><input type="text" id="wa-topic" placeholder="Misal: Desain / Project Kampus" required class="glass-input" /></div>
-              </div>
-              <div class="flex flex-col gap-1.5"><label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-message">Pesan</label><textarea id="wa-message" rows="4" placeholder="Ceritakan detail idenya di sini..." required class="glass-input resize-none"></textarea></div>
-              <button type="submit" class="btn-submit magnetic mt-2">Kirim Pesan via WhatsApp ↗</button>
-            </form>
-          </div>
-          <div class="hidden md:flex w-full md:w-1/2 h-[550px] md:h-[650px] relative items-end justify-center reveal-up delay-300">
-            <SplineScene client:visible scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode" className="w-full h-full cursor-grab active:cursor-grabbing scale-[1.15] translate-y-6" />
-          </div>
-        </div>
-      </section>
-
-      <!-- EPIC FOOTER (Fixed Gap) -->
-      <footer id="connect" class="pt-32 pb-24 px-6 text-center relative overflow-hidden">
-        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-white/5 blur-[150px] rounded-full -z-10"></div>
-        <div class="max-w-3xl mx-auto reveal-up">
-          <h2 class="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tighter">Let's Create <br/> Meaningful Impact.</h2>
-          <p class="text-zinc-400 text-lg mb-12">
-            Terbuka untuk kolaborasi seputar Technology, Leadership, Public Speaking, Education, dan Youth Development. Let's grow and lead together.
-          </p>
-          <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <a href="https://instagram.com/aftharmuhammad_" target="_blank" class="w-full sm:w-auto px-10 py-5 bg-white text-black font-bold rounded-2xl hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.15)] flex justify-center items-center gap-2 magnetic">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
-              Connect on Instagram
-            </a>
-            <button id="footer-cta-portfolio" class="w-full sm:w-auto px-10 py-5 bg-zinc-900 border border-white/10 text-white font-bold rounded-2xl hover:bg-zinc-800 transition-colors flex justify-center items-center gap-2 magnetic">
-              View Portofolio Visual
-            </button>
-          </div>
-          <div class="mt-24 text-zinc-600 text-sm font-mono">
-            &copy; 2026 Muhammad Fatih. Engineered with Precision.
-          </div>
-        </div>
-      </footer>
-    </main>
-
-    <!-- macOS DOCK NAVIGATION & FILTERS -->
-    <nav id="mac-dock" class="no-scrollbar">
-      <div class="dock-icons">
-        <a href="#home" class="dock-icon magnetic" aria-label="Home"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a>
-        <a href="#about" class="dock-icon magnetic" aria-label="About"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></a>
-        <a href="#journey" class="dock-icon magnetic" aria-label="Journey"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></a>
-        <a href="#projects-container" class="dock-icon magnetic" aria-label="Projects"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></a>
-        <a href="#connect" class="dock-icon magnetic" aria-label="Contact"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></a>
-        <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" class="dock-icon magnetic" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg></a>
-      </div>
-      <div class="dock-divider"></div>
-      <div id="dock-filters" class="dock-filters no-scrollbar">
+    <nav id="filter-nav" class="sticky top-[56px] z-[150] py-3 bg-zinc-950/90 backdrop-blur-2xl border-b border-white/[0.06] reveal-up no-scrollbar overflow-hidden">
+      <div class="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
+      <div class="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-zinc-950/90 to-transparent z-10 pointer-events-none md:hidden"></div>
+      <div id="filter-nav-track" class="flex justify-start md:justify-center gap-2 overflow-x-auto px-6 no-scrollbar relative">
         {categories.map((cat) => {
           const count = cat === 'All' ? (projects?.length ?? 0) : (projects?.filter(p => p.category === cat).length ?? 0);
           return (
-            <button data-filter={cat} class="filter-btn magnetic" data-active={cat === 'All'}>
-              {cat}<span class="font-mono text-[9px] opacity-50 tabular-nums ml-1">{count}</span>
+            <button data-filter={cat} class="filter-btn magnetic flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] md:text-xs font-semibold tracking-widest uppercase border border-white/10 text-zinc-400 hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:border-white" data-active={cat === 'All'}>
+              {cat}<span class="font-mono text-[9px] opacity-50 tabular-nums">{count}</span>
             </button>
           );
         })}
       </div>
     </nav>
+
+    <main class="relative w-full" id="projects-container">
+      {projects && projects.map((project, index) => {
+        const allImages = project.image_urls || [''];
+        const displayImages = allImages.slice(0, MAX_SCROLL_IMAGES);
+        const hasMore = allImages.length > MAX_SCROLL_IMAGES;
+        return (
+          <section class="project-section" data-category={project.category} data-project-index={index} style={`--display-count: ${displayImages.length}; z-index: ${index + 10};`}>
+            <div class="project-sticky-view">
+              <div class="project-bg-glow"></div>
+              <div class="image-3d-container">
+                {displayImages.map((url: string, imgIndex: number) => (
+                  <div class="img-3d-card" data-img-index={imgIndex}>
+                    <img src={url} alt={`${project.title} - foto ${imgIndex + 1}`} class="project-image w-full h-full object-cover cursor-zoom-in" data-images={JSON.stringify(allImages)} data-index={imgIndex} loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'} />
+                    <div class="img-3d-dim"></div><div class="img-3d-gloss"></div>
+                  </div>
+                ))}
+              </div>
+              <div class="text-panel">
+                <div class="w-full max-w-lg pointer-events-auto relative">
+                  <div class="flex items-center gap-4 mb-5 md:mb-7 reveal-up">
+                    <span class="project-counter font-mono text-[10px] md:text-xs text-zinc-600 tracking-[0.3em] uppercase">0{index + 1}</span>
+                    <div class="flex-1 h-px bg-white/10 line-draw max-w-[60px]"></div>
+                    {project.category && (<span class="px-2.5 py-0.5 bg-white/5 border border-white/[0.08] rounded-full font-mono text-[9px] md:text-[10px] tracking-widest uppercase text-zinc-500">{project.category}</span>)}
+                  </div>
+                  <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold mb-4 md:mb-5 leading-[1.1] text-white reveal-up delay-100">{project.title}</h2>
+                  <p class="text-zinc-400 text-sm md:text-base leading-relaxed font-light reveal-up delay-200 max-w-md">{project.description}</p>
+                  <div class="mt-6 flex items-center gap-3 reveal-up delay-300">
+                    <div class="flex gap-1" data-img-dots>
+                      {displayImages.map((_: string, dotI: number) => (<div class={`h-1 rounded-full transition-all ${dotI === 0 ? 'bg-white/60 w-3' : 'bg-white/20 w-1'}`} data-dot-i={dotI}></div>))}
+                      {hasMore && <div class="h-1 w-1 rounded-full bg-white/10"></div>}
+                    </div>
+                    <span class="text-[10px] font-mono text-zinc-600 tracking-widest">{allImages.length} FOTO {hasMore ? `· ${displayImages.length} DITAMPILKAN` : ''}</span>
+                  </div>
+                  {hasMore && (<button class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400 cursor-pointer relative z-10" data-open-all-images={JSON.stringify(allImages)}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
+                    Lihat semua {allImages.length} foto
+                  </button>)}
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })}
+    </main>
+
+    <section id="philosophy-section">
+      <div class="philosophy-sticky">
+        <div class="tunnel-track" id="tunnel-track">
+          <span class="tunnel-word" style="transform: translate3d(0, 0, 0px)">VISION</span>
+          <span class="tunnel-word solid" style="transform: translate3d(0, 0, 1200px)">PRECISION</span>
+          <span class="tunnel-word" style="transform: translate3d(0, 0, 2400px)">CULTURE</span>
+          <span class="tunnel-word solid" style="transform: translate3d(0, 0, 3600px)">CODE</span>
+        </div>
+        <div class="tunnel-quote" id="tunnel-quote">
+          "Desain bukan hanya tentang bagaimana terlihat, tapi tentang bagaimana berfungsi. Kode adalah puisi logis yang menghidupkan ide."
+        </div>
+      </div>
+    </section>
+
+    <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950/70 backdrop-blur-xl relative z-20 border-t border-white/5 overflow-hidden">
+      <div class="absolute -top-40 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+      <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
+        <div class="w-full md:w-1/2 text-left z-10">
+          <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-600 mb-4 reveal-up">Kolaborasi</p>
+          <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
+          <div class="w-16 h-px bg-white/20 mb-8 line-draw"></div>
+          <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.</p>
+          <form id="wa-form" class="space-y-4 w-full max-w-lg reveal-up delay-150" novalidate>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5"><label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-name">Nama / Instansi</label><input type="text" id="wa-name" placeholder="Misal: Budi / Duta Remaja" required autocomplete="name" class="glass-input" /></div>
+              <div class="flex flex-col gap-1.5"><label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-topic">Topik Diskusi</label><input type="text" id="wa-topic" placeholder="Misal: Desain / Project Kampus" required class="glass-input" /></div>
+            </div>
+            <div class="flex flex-col gap-1.5"><label class="text-[10px] font-semibold text-zinc-600 uppercase tracking-[0.15em]" for="wa-message">Pesan</label><textarea id="wa-message" rows="4" placeholder="Ceritakan detail idenya di sini..." required class="glass-input resize-none"></textarea></div>
+            <button type="submit" class="btn-submit magnetic mt-2">Kirim Pesan via WhatsApp ↗</button>
+          </form>
+        </div>
+        <div class="hidden md:flex w-full md:w-1/2 h-[550px] md:h-[650px] relative items-end justify-center reveal-up delay-300">
+          <SplineScene client:visible scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode" className="w-full h-full cursor-grab active:cursor-grabbing scale-[1.15] translate-y-6" />
+        </div>
+      </div>
+    </section>
+
+    <footer id="site-footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand-name">Muhammad Fatih.</div>
+          <div class="footer-tagline">Informatics · Leadership · Design</div>
+          <div class="footer-socials">
+            <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="footer-social-link magnetic" aria-label="Instagram"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+            <a href="#wa-form" class="footer-social-link magnetic" aria-label="WhatsApp"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+            <a href="#projects-container" class="footer-social-link magnetic" aria-label="Portfolio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="footer-status"><span class="footer-status-dot"></span>Open for collaboration</div>
+          <div class="footer-copy">© 2026 <a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener">Muhammad Abdee Nur Fatih</a></div>
+        </div>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom">
+        <nav class="footer-nav-links"><a href="#projects-container" class="footer-nav-link">Karya</a><a href="#wa-form" class="footer-nav-link">Kolaborasi</a><a href="https://www.instagram.com/aftharmuhammad_" target="_blank" rel="noopener" class="footer-nav-link">Instagram</a></nav>
+        <span class="footer-copy">Made with precision in Surabaya.</span>
+      </div>
+    </footer>
 
     <audio id="bg-music" loop preload="none"><source src="/audio/soundtrack.mp3" type="audio/mpeg" /></audio>
     
@@ -558,13 +500,6 @@ const MAX_SCROLL_IMAGES = 3;
         const isMobile = () => window.innerWidth < 768;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // Scroll to Projects
-        const scrollToProjects = () => {
-          const el = document.getElementById('projects-container');
-          if (el) window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
-        };
-        document.getElementById('footer-cta-portfolio')?.addEventListener('click', scrollToProjects);
-
         // ── 1. CUSTOM CURSOR & MAGNETIC BUTTONS ──────────────────
         const cursorDot = qs('#cursor-dot') as HTMLElement;
         const cursorRing = qs('#cursor-ring') as HTMLElement;
@@ -597,12 +532,14 @@ const MAX_SCROLL_IMAGES = 3;
         );
         qsa('.reveal-up, .reveal-right, .line-draw').forEach(el => revealObs.observe(el));
 
-        // ── 3. FILTER (Moved to Dock) ────────────────────────────
+        // ── 3. FILTER ────────────────────────────────────────────
         const filterBtns = qsa('.filter-btn') as NodeListOf<HTMLElement>;
         const setActiveFilter = (targetBtn: HTMLElement) => {
           filterBtns.forEach(b => b.setAttribute('data-active', 'false'));
           targetBtn.setAttribute('data-active', 'true');
-          targetBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          const track = qs('#filter-nav-track') as HTMLElement;
+          const btnLeft = targetBtn.offsetLeft, btnWidth = targetBtn.offsetWidth, trackW = track.clientWidth;
+          track.scrollTo({ left: btnLeft - (trackW / 2) + (btnWidth / 2), behavior: 'smooth' });
           const filter = targetBtn.getAttribute('data-filter');
           (qsa('.project-section') as NodeListOf<HTMLElement>).forEach(s => {
             s.style.display = (filter === 'All' || s.getAttribute('data-category') === filter) ? 'block' : 'none';
@@ -620,6 +557,7 @@ const MAX_SCROLL_IMAGES = 3;
         const tunnelTrack = qs('#tunnel-track') as HTMLElement;
         const tunnelQuote = qs('#tunnel-quote') as HTMLElement;
         const progressBar = qs('#scroll-progress') as HTMLElement;
+        const siteHeader = qs('#site-header') as HTMLElement;
 
         const cacheMetrics = () => {
           metrics = [];
@@ -659,6 +597,7 @@ const MAX_SCROLL_IMAGES = 3;
 
           const max = document.documentElement.scrollHeight - winH;
           progressBar.style.width = max > 0 ? `${(scrollY / max) * 100}%` : '0%';
+          siteHeader.classList.toggle('scrolled', scrollY > 40);
 
           if (!isMobile()) {
             rX = lerp(rX, mX, 0.2); rY = lerp(rY, mY, 0.2);
@@ -749,7 +688,7 @@ const MAX_SCROLL_IMAGES = 3;
           btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         }
 
-        // ── 6. LIGHTBOX ──────────────────────────────────────────
+        // ── 6. LIGHTBOX (Smooth Animation Implementation) ────────
         const lightbox = qs('#lightbox') as HTMLElement;
         if (lightbox) {
           const lbImg = qs('#lightbox-img') as HTMLImageElement;
@@ -775,26 +714,28 @@ const MAX_SCROLL_IMAGES = 3;
             lightbox.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             setImg();
+            // Trigger fade in
             requestAnimationFrame(() => {
-              zoomWrap.style.transform = 'scale(1)';
+              zoomWrap.style.transform = 'scale(1)'; // Reset from close animation
               lightbox.style.opacity = '1';
             });
           };
           
           const close = () => {
             lightbox.style.opacity = '0';
-            zoomWrap.style.transform = 'scale(0.95)';
+            zoomWrap.style.transform = 'scale(0.95)'; // Subtle scale down on close
             closeTimeout = setTimeout(() => {
               lightbox.classList.add('hidden');
               document.body.style.overflow = '';
               resetZoom();
-            }, 300);
+            }, 300); // Match CSS transition duration
           };
 
           document.getElementById('projects-container')?.addEventListener('click', e => {
             const target = (e.target as HTMLElement).closest('.project-image') as HTMLImageElement | null;
             if (target) {
               e.stopPropagation();
+              // Membuka full gallery di awal (index 0) agar persis seperti tombol lihat semua foto
               open(JSON.parse(target.dataset.images!), 0);
               return;
             }
