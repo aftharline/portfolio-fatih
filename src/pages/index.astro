@@ -132,23 +132,18 @@ const jsonLd = {
 
       /* ═══════════════════════════════════════════════════════
          SMOOTH 3D CAROUSEL
-         Teknik: per-element perspective() — tampilan 3D nyata
-         tapi TANPA transform-style: preserve-3d pada parent
-         sehingga 0 overhead 3D sorting/compositing
       ═══════════════════════════════════════════════════════ */
       .project-section { position: relative; height: calc(var(--display-count) * 100svh); z-index: 1; contain: layout style; }
       .project-sticky-view { position: sticky; top: 0; height: 100svh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
       .project-bg-glow { position: absolute; width: 60%; height: 50%; background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 70%); filter: blur(60px); z-index: 0; pointer-events: none; }
-      .image-card-container { position: absolute; inset: 0; z-index: 10; pointer-events: none; /* NO transform-style: preserve-3d */ }
+      .image-card-container { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
       .img-card {
         position: absolute; top: 50%; left: 50%; width: 85%; max-width: 550px; height: 65%; border-radius: 16px; overflow: hidden;
         pointer-events: none; backface-visibility: hidden; background: #18181b;
-        /* Default: tersembunyi jauh di kanan */
         transform: translate(-50%, -50%) perspective(1200px) translateX(80%) rotateY(40deg) scale(0.85);
         opacity: 0;
         box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
-        /* NO will-change — browser auto-promote saat animasi berjalan */
       }
       .img-card[data-active="true"] { box-shadow: 0 0 60px 5px rgba(255,255,255,0.06), 0 30px 60px -15px rgba(0,0,0,0.8); }
       .img-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
@@ -403,7 +398,7 @@ const jsonLd = {
                   </div>
                   {hasMore && (
                     <button class="mt-4 text-[10px] font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors flex items-center gap-1.5 reveal-up delay-400" data-open-all-images={JSON.stringify(allImages)} aria-label={`Lihat semua ${allImages.length} foto`}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width: 13; height="13" rx="2"/></svg>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/><rect x="9" y="9" width="13" height="13" rx="2"/></svg>
                       Lihat semua {allImages.length} foto
                     </button>
                   )}
@@ -539,44 +534,50 @@ const jsonLd = {
         _clean.push(() => ro.disconnect());
 
         // ═══════════════════════════════════════════════
-        // FILTER — FIX: cari active section setelah filter
+        // FILTER — FIX: display: none menghapus dari layout
         // ═══════════════════════════════════════════════
         const btns = $$('.filter-btn');
         let aIdx = -1, cF = -1;
 
-        // Cari section yang paling dekat dengan viewport center
-        // dari daftar section yang VISIBLE
         const findActiveFromScroll = () => {
           const sy = scrollY, wh = innerHeight;
           let bestDist = Infinity, bestPI = -1;
-          $$('.project-section').forEach(s => {
-            const el = s as HTMLElement;
-            if (el.style.visibility === 'hidden') return;
-            const center = el.offsetTop + el.offsetHeight / 2;
+          MMap.forEach((m, pi) => {
+            const center = m.top + m.h / 2;
             const dist = Math.abs(center - (sy + wh / 2));
-            if (dist < bestDist) { bestDist = dist; bestPI = +el.dataset.projectIndex; }
+            if (dist < bestDist) { bestDist = dist; bestPI = pi; }
           });
           return bestPI;
-        };
-
-        const doFilter = (cat: string) => {
-          btns.forEach(b => { const a = b.dataset.filter === cat; b.dataset.active = String(a); b.setAttribute('aria-selected', String(a)); });
-          $$('.project-section').forEach(s => { const show = cat === 'All' || s.dataset.category === cat; (s as HTMLElement).style.visibility = show ? 'visible' : 'hidden'; (s as HTMLElement).style.pointerEvents = show ? 'auto' : 'none'; (s as HTMLElement).style.opacity = show ? '1' : '0'; });
-          // FIX: set ulang active section berdasarkan posisi scroll saat ini
-          aIdx = findActiveFromScroll();
-          cF = -1; // reset lerp agar langsung snap ke posisi baru
-          updateDotNav();
-          cacheM();
         };
 
         const updateDotNav = () => {
           $$('.dot-nav-item').forEach(d => d.classList.toggle('active', +d.dataset.dot === aIdx));
         };
 
+        const doFilter = (cat: string) => {
+          btns.forEach(b => { const a = b.dataset.filter === cat; b.dataset.active = String(a); b.setAttribute('aria-selected', String(a)); });
+
+          // FIX UTAMA: display: none — elemen benar-benar dihapus dari layout flow
+          // scroll height langsung menyesuaikan panjangnya
+          $$('.project-section').forEach(s => {
+            const show = cat === 'All' || s.dataset.category === cat;
+            (s as HTMLElement).style.display = show ? '' : 'none';
+          });
+
+          // Recalculate posisi SETELAH display berubah
+          // (offsetTop & offsetHeight berubah saat sibling di-hide)
+          cacheM();
+
+          // Tentukan section aktif berdasarkan posisi scroll saat ini
+          aIdx = findActiveFromScroll();
+          cF = -1; // reset lerp agar langsung snap
+          updateDotNav();
+        };
+
         btns.forEach(b => { const h = () => doFilter(b.dataset.filter || 'All'); b.addEventListener('click', h); _clean.push(() => b.removeEventListener('click', h)); });
 
         // ═══════════════════════════════════════════════
-        // METRICS CACHE — pakai Map untuk lookup by projectIndex
+        // METRICS — Map indexed by projectIndex
         // ═══════════════════════════════════════════════
         interface MEntry { el: HTMLElement; top: number; h: number; cards: HTMLElement[]; dots: HTMLElement[]; }
         let MMap = new Map<number, MEntry>();
@@ -585,7 +586,8 @@ const jsonLd = {
           MMap.clear();
           $$('.project-section').forEach(s => {
             const el = s as HTMLElement;
-            if (el.style.visibility === 'hidden') return;
+            // display: none → offsetHeight = 0, skip
+            if (!el.offsetHeight) return;
             const pi = +el.dataset.projectIndex;
             MMap.set(pi, {
               el, top: el.offsetTop, h: el.offsetHeight,
@@ -596,11 +598,12 @@ const jsonLd = {
         };
         cacheM();
 
-        // Observer — observe SEMUA section, tapi hanya aktifkan yang visible
+        // Observer
         const po = new IntersectionObserver(es => {
           for (const e of es) {
             const el = e.target as HTMLElement;
-            if (e.isIntersecting && el.style.visibility !== 'hidden') {
+            // Hanya proses yang visible (display !== none)
+            if (e.isIntersecting && el.offsetHeight > 0) {
               aIdx = +el.dataset.projectIndex || 0;
               cF = -1;
               updateDotNav();
@@ -616,10 +619,7 @@ const jsonLd = {
         _clean.push(() => window.removeEventListener('resize', onR));
 
         // ═══════════════════════════════════════════════
-        // SMOOTH 3D ANIMATION ENGINE
-        // Teknik: perspective() PER CARD — bukan di parent
-        // Hasil: tampilan 3D coverflow nyata
-        // Biaya: 0 overhead 3D sorting/compositing
+        // SMOOTH 3D ANIMATION
         // ═══════════════════════════════════════════════
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
         const pb = $('#scroll-progress'), hdr = $('#site-header'), btt = $('#back-to-top');
@@ -629,22 +629,17 @@ const jsonLd = {
           _raf = requestAnimationFrame(tick);
           const sy = scrollY, wh = innerHeight;
 
-          // Progress bar & header
           if (pb) { const mx = document.documentElement.scrollHeight - wh; pb.style.width = mx > 0 ? `${(sy / mx) * 100}%` : '0%'; }
           if (hdr) hdr.classList.toggle('scrolled', sy > 40);
           if (btt) btt.classList.toggle('visible', sy > wh * 0.8);
 
-          // 3D Card carousel — lookup via Map by projectIndex
           const d = aIdx >= 0 ? MMap.get(aIdx) : null;
           if (d) {
             const sc = Math.max(d.h - wh, 1);
             const p = Math.max(0, Math.min(1, (sy - d.top) / sc));
             const targetFocus = p * (d.cards.length - 1);
 
-            // Init lerp on first frame
             if (cF < 0) cF = targetFocus;
-
-            // Smooth lerp — 0.16 = responsif tapi halus
             cF = lerp(cF, targetFocus, 0.16);
 
             const mob = isMob();
@@ -656,7 +651,6 @@ const jsonLd = {
               const adist = Math.abs(dist);
 
               if (adist > 1.8) {
-                // Di luar jangkauan — hilangkan sepenuhnya dari render
                 if (c.style.visibility !== 'hidden') {
                   c.style.visibility = 'hidden';
                   c.style.pointerEvents = 'none';
@@ -665,12 +659,8 @@ const jsonLd = {
                 continue;
               }
 
-              // Pastikan visible
               if (c.style.visibility === 'hidden') c.style.visibility = 'visible';
 
-              // ── 3D Transform ──
-              // perspective(1200px) di setiap card = 3D mandiri
-              // TANPA transform-style: preserve-3d di parent
               const xPct = dist * (mob ? 55 : 65);
               const rotY = dist * (mob ? -28 : -35);
               const zPush = -adist * (mob ? 60 : 100);
@@ -687,7 +677,6 @@ const jsonLd = {
               if (act) ad = i;
             }
 
-            // Update dot indicators
             for (let i = 0; i < d.dots.length; i++) {
               d.dots[i].className = `h-1 rounded-full transition-all ${i === ad ? 'bg-white/60 w-3' : 'bg-white/20 w-1'}`;
             }
@@ -721,7 +710,6 @@ const jsonLd = {
         lb?.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
         lb?.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) lbN(dx > 0 ? -1 : 1); }, { passive: true });
 
-        // Back to top
         btt?.addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
 
         // Music
@@ -736,7 +724,7 @@ const jsonLd = {
           const n = ($('#wa-name') as HTMLInputElement)?.value?.trim(), t = ($('#wa-topic') as HTMLInputElement)?.value?.trim(), m = ($('#wa-message') as HTMLTextAreaElement)?.value?.trim();
           if (!n || !t || !m) { if (fe) { fe.textContent = 'Mohon lengkapi semua field.'; fe.classList.remove('hidden'); setTimeout(() => fe.classList.add('hidden'), 3000); } return; }
           // GANTI DENGAN NOMOR WA ASLI
-          open(`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo! Saya ${n}.\nTopik: ${t}\nPesan: ${m}`)}`, '_blank', 'noopener');
+          open(`https://wa.me/6285707109853?text=${encodeURIComponent(`Halo! Saya ${n}.\nTopik: ${t}\nPesan: ${m}`)}`, '_blank', 'noopener');
         });
       }
 
