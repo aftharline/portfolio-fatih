@@ -165,12 +165,17 @@ const jsonLd = {
       .project-counter { font-variant-numeric: tabular-nums; }
 
       /* ═══════════════════════════════════════════════════════
-         SILVER GLOWING HOLOGRAM
+         SILVER HOLOGRAM — Responsive
       ═══════════════════════════════════════════════════════ */
       .hologram-wrap {
-        position: relative; width: 320px; height: 380px;
+        position: relative;
+        /* Mobile: 200x240, Tablet: 340x400, Desktop: 440x500 */
+        width: 220px; height: 260px;
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       }
+      @media (min-width: 640px) { .hologram-wrap { width: 340px; height: 400px; } }
+      @media (min-width: 1024px) { .hologram-wrap { width: 440px; height: 500px; } }
+
       .hologram-wrap::before {
         content: ''; position: absolute; inset: -30px;
         background: radial-gradient(ellipse at 50% 45%, rgba(200,205,215,0.08) 0%, transparent 65%);
@@ -182,25 +187,38 @@ const jsonLd = {
         background: linear-gradient(180deg, rgba(200,205,215,0.14), rgba(200,205,215,0.04));
         animation: holo-float 6s ease-in-out infinite;
       }
+      @media (min-width: 640px) { .holo-hex { width: 110px; height: 110px; } }
+      @media (min-width: 1024px) { .holo-hex { width: 120px; height: 120px; } }
+
       .holo-hex-ring {
         position: absolute; width: 96px; height: 96px;
         clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
         background: conic-gradient(from 0deg, rgba(200,205,215,0.5), transparent 25%, rgba(200,205,215,0.5) 50%, transparent 75%, rgba(200,205,215,0.5));
         animation: holo-spin 8s linear infinite;
       }
+      @media (min-width: 640px) { .holo-hex-ring { width: 120px; height: 120px; } }
+      @media (min-width: 1024px) { .holo-hex-ring { width: 132px; height: 132px; } }
+
       .holo-hex-inner {
         position: absolute; width: 50px; height: 50px;
         clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
         background: rgba(200,205,215,0.06);
         animation: holo-spin 12s linear infinite reverse;
       }
+      @media (min-width: 640px) { .holo-hex-inner { width: 65px; height: 65px; } }
+      @media (min-width: 1024px) { .holo-hex-inner { width: 72px; height: 72px; } }
+
       .holo-orbit { position: absolute; border-radius: 50%; border: 1px solid transparent; }
-      .holo-orbit-1 { width: 155px; height: 155px; border-top-color: rgba(200,205,215,0.5); border-right-color: rgba(200,205,215,0.08); animation: holo-spin 7s linear infinite; }
-      .holo-orbit-2 { width: 215px; height: 215px; border-bottom-color: rgba(200,205,215,0.3); border-left-color: rgba(200,205,215,0.06); border-style: dashed; animation: holo-spin 13s linear infinite reverse; }
-      .holo-orbit-3 { width: 275px; height: 275px; border-top-color: rgba(200,205,215,0.12); border-left-color: rgba(200,205,215,0.04); animation: holo-spin 20s linear infinite; }
-      .holo-orbit-4 { width: 190px; height: 120px; border-top-color: rgba(200,205,215,0.2); border-bottom-color: rgba(200,205,215,0.05); animation: holo-spin 10s linear infinite reverse; transform: rotateX(65deg); }
+      .holo-orbit-1 { width: 55%; aspect-ratio: 1; border-top-color: rgba(200,205,215,0.5); border-right-color: rgba(200,205,215,0.08); animation: holo-spin 7s linear infinite; }
+      .holo-orbit-2 { width: 75%; aspect-ratio: 1; border-bottom-color: rgba(200,205,215,0.3); border-left-color: rgba(200,205,215,0.06); border-style: dashed; animation: holo-spin 13s linear infinite reverse; }
+      .holo-orbit-3 { width: 95%; aspect-ratio: 1; border-top-color: rgba(200,205,215,0.12); border-left-color: rgba(200,205,215,0.04); animation: holo-spin 20s linear infinite; }
+      .holo-orbit-4 { width: 65%; aspect-ratio: 0.63; border-top-color: rgba(200,205,215,0.2); border-bottom-color: rgba(200,205,215,0.05); animation: holo-spin 10s linear infinite reverse; transform: rotateX(65deg); }
+      /* Sembunyikan orbit 3 & 4 di mobile untuk performa */
+      .holo-orbit-3, .holo-orbit-4 { display: none; }
+      @media (min-width: 640px) { .holo-orbit-3, .holo-orbit-4 { display: block; } }
+
       .holo-scan {
-        position: absolute; width: 250px; height: 1.5px;
+        position: absolute; width: 80%; height: 1.5px;
         background: linear-gradient(90deg, transparent 0%, rgba(200,205,215,0.06) 20%, rgba(220,225,235,0.7) 50%, rgba(200,205,215,0.06) 80%, transparent 100%);
         animation: holo-sweep 3.5s ease-in-out infinite;
         box-shadow: 0 0 12px rgba(200,205,215,0.35);
@@ -208,11 +226,15 @@ const jsonLd = {
       .holo-lines {
         position: absolute; inset: 15px; border-radius: 50%; pointer-events: none;
         background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(200,205,215,0.015) 3px, rgba(200,205,215,0.015) 4px);
+        /* Sembunyikan scanlines di mobile */
+        display: none;
       }
+      @media (min-width: 640px) { .holo-lines { display: block; } }
+
       .holo-floor {
         position: absolute; bottom: 5px; left: 50%;
         transform: translateX(-50%) perspective(200px) rotateX(65deg);
-        width: 260px; height: 110px;
+        width: 80%; aspect-ratio: 2.36;
         background:
           linear-gradient(rgba(200,205,215,0.07) 1px, transparent 1px),
           linear-gradient(90deg, rgba(200,205,215,0.07) 1px, transparent 1px);
@@ -226,13 +248,23 @@ const jsonLd = {
         background: rgba(220,225,235,0.9); border-radius: 50%;
         box-shadow: 0 0 6px rgba(200,205,215,0.7), 0 0 14px rgba(200,205,215,0.25);
       }
+      /* Hanya 4 partikel di mobile, 8 di desktop */
+      .holo-particle.p-desktop { display: none; }
+      @media (min-width: 640px) { .holo-particle.p-desktop { display: block; } }
+
       .holo-bracket { position: absolute; width: 20px; height: 20px; border-color: rgba(200,205,215,0.25); border-style: solid; border-width: 0; }
       .holo-bracket.tl { top: 10%; left: 5%; border-top-width: 1px; border-left-width: 1px; }
       .holo-bracket.tr { top: 10%; right: 5%; border-top-width: 1px; border-right-width: 1px; }
       .holo-bracket.bl { bottom: 15%; left: 5%; border-bottom-width: 1px; border-left-width: 1px; }
       .holo-bracket.br { bottom: 15%; right: 5%; border-bottom-width: 1px; border-right-width: 1px; }
-      .holo-data { position: absolute; font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.15em; color: rgba(200,205,215,0.2); white-space: nowrap; pointer-events: none; }
-      .holo-vline { position: absolute; width: 1px; background: linear-gradient(to bottom, transparent, rgba(200,205,215,0.15), transparent); }
+      /* Sembunyikan bracket di mobile */
+      .holo-bracket { display: none; }
+      @media (min-width: 640px) { .holo-bracket { display: block; } }
+
+      .holo-data { position: absolute; font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.15em; color: rgba(200,205,215,0.2); white-space: nowrap; pointer-events: none; display: none; }
+      @media (min-width: 640px) { .holo-data { display: block; } }
+      .holo-vline { position: absolute; width: 1px; background: linear-gradient(to bottom, transparent, rgba(200,205,215,0.15), transparent); display: none; }
+      @media (min-width: 640px) { .holo-vline { display: block; } }
 
       @keyframes holo-breathe { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.04); } }
       @keyframes holo-float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(2deg); } }
@@ -253,17 +285,89 @@ const jsonLd = {
       #img-zoom-wrapper { transition: transform 0.3s ease-out; }
       .lightbox-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.96); }
 
-      /* FABS */
-      .fab-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; }
-      @media (min-width: 768px) { .fab-container { bottom: 2.5rem; right: 2.5rem; } }
-      .fab { width: 44px; height: 44px; border-radius: 50%; background: rgba(24,24,27,0.8); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: manipulation; }
-      .fab:hover { background: white; color: black; }
-      .fab#back-to-top { opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity 0.3s, transform 0.3s, background 0.2s, color 0.2s; }
-      .fab#back-to-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
-      .fab#music-toggle.playing::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); animation: pulse-ring 1.5s ease-out infinite; }
-      @keyframes pulse-ring { to { transform: scale(1.3); opacity: 0; } }
+      /* ═══════════════════════════════════════════════════════
+         FAB BUTTONS — Premium Style
+      ═══════════════════════════════════════════════════════ */
+      .fab-container {
+        position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 100;
+        display: flex; flex-direction: column; gap: 0.6rem; align-items: center;
+      }
+      @media (min-width: 768px) { .fab-container { bottom: 2rem; right: 2rem; gap: 0.75rem; } }
 
-      /* FOOTER */
+      .fab {
+        position: relative; /* FIX: wajib ada agar ::after ter-positioning benar */
+        overflow: visible; /* FIX: wajib visible agar pulse ring keluar */
+        width: 46px; height: 46px; border-radius: 50%;
+        background: rgba(24,24,27,0.75);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.6);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      @media (min-width: 768px) { .fab { width: 50px; height: 50px; } }
+
+      .fab:hover {
+        background: rgba(255,255,255,0.95);
+        color: #09090b;
+        border-color: rgba(255,255,255,0.3);
+        box-shadow: 0 0 24px rgba(255,255,255,0.15), 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+        transform: translateY(-3px) scale(1.05);
+      }
+      .fab:active { transform: translateY(0) scale(0.96); }
+
+      /* Back to top — state tersembunyi */
+      .fab#back-to-top {
+        opacity: 0; transform: translateY(16px) scale(0.85);
+        pointer-events: none;
+        transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1), background 0.35s, color 0.35s, border-color 0.35s, box-shadow 0.35s;
+      }
+      .fab#back-to-top.visible {
+        opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+      }
+
+      /* ═══════════════════════════════════════════════════════
+         MUSIC PULSE — FIX: position: relative + overflow: visible
+         + Double ring untuk efek lebih keren
+      ═══════════════════════════════════════════════════════ */
+      .fab#music-toggle.playing::before,
+      .fab#music-toggle.playing::after {
+        content: '';
+        position: absolute;
+        inset: -5px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.35);
+        pointer-events: none;
+        z-index: -1;
+      }
+      .fab#music-toggle.playing::before {
+        animation: fab-pulse-1 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+      }
+      .fab#music-toggle.playing::after {
+        animation: fab-pulse-2 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s infinite;
+      }
+
+      @keyframes fab-pulse-1 {
+        0% { transform: scale(1); opacity: 0.6; }
+        100% { transform: scale(1.8); opacity: 0; }
+      }
+      @keyframes fab-pulse-2 {
+        0% { transform: scale(1); opacity: 0.4; }
+        100% { transform: scale(2.2); opacity: 0; }
+      }
+
+      /* Saat hover, pulse ring jadi silver */
+      .fab#music-toggle.playing:hover::before,
+      .fab#music-toggle.playing:hover::after {
+        border-color: rgba(200,205,215,0.5);
+      }
+
+      /* ═══════════════════════════════════════════════════════
+         FOOTER
+      ═══════════════════════════════════════════════════════ */
       #site-footer { position: relative; z-index: 50; background: #09090b; border-top: 1px solid rgba(255,255,255,0.06); content-visibility: auto; contain-intrinsic-size: auto 350px; }
       .footer-inner { max-width: 80rem; margin: 0 auto; padding: 3rem 1.5rem 2rem; display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
       @media (min-width: 768px) { .footer-inner { grid-template-columns: 1fr auto; gap: 3rem; align-items: end; } }
@@ -287,10 +391,11 @@ const jsonLd = {
       .footer-nav-link { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); text-decoration: none; transition: color 0.2s; }
       .footer-nav-link:hover { color: rgba(255,255,255,0.6); }
 
-      @supports (padding: env(safe-area-inset-bottom)) { .fab-container { bottom: calc(1.5rem + env(safe-area-inset-bottom)); } }
+      @supports (padding: env(safe-area-inset-bottom)) { .fab-container { bottom: calc(1.25rem + env(safe-area-inset-bottom)); } }
 
       @media (prefers-reduced-motion: reduce) {
         .animate-marquee, .holo-hex, .holo-hex-ring, .holo-hex-inner, .holo-orbit, .holo-scan, .holo-floor, .holo-particle, .pl-progress, .pl-text { animation: none !important; }
+        .fab#music-toggle.playing::before, .fab#music-toggle.playing::after { animation: none !important; }
         .reveal-up { opacity: 1; transform: none; }
         .line-draw { transform: scaleX(1); }
         #site-footer { content-visibility: visible; }
@@ -410,13 +515,15 @@ const jsonLd = {
       })}
     </main>
 
-    <section class="min-h-[85svh] flex flex-col justify-center px-6 py-20 md:p-16 bg-zinc-950 relative z-20 border-t border-white/5 overflow-hidden" aria-label="Kolaborasi">
-      <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-12">
-        <div class="w-full md:w-1/2 text-left z-10">
+    <!-- ═══════ KOLABORASI + HOLOGRAM RESPONSIVE ═══════ -->
+    <section class="min-h-[85svh] flex flex-col justify-center px-5 py-16 md:px-16 md:py-20 bg-zinc-950 relative z-20 border-t border-white/5 overflow-hidden" aria-label="Kolaborasi">
+      <div class="max-w-7xl w-full mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-12">
+
+        <div class="w-full md:w-1/2 text-left z-10 order-2 md:order-1">
           <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-zinc-600 mb-4 reveal-up">Kolaborasi</p>
-          <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
+          <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 leading-tight reveal-up delay-50">Mari Berkolaborasi.</h2>
           <div class="w-16 h-px bg-white/20 mb-8 line-draw" aria-hidden="true"></div>
-          <p class="text-zinc-400 mb-10 text-base md:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.</p>
+          <p class="text-zinc-400 mb-10 text-sm md:text-base lg:text-lg font-light reveal-up delay-100 max-w-md leading-relaxed">Punya konsep menarik, ide kreatif, atau tawaran project? Mari diskusikan bersama.</p>
           <form id="wa-form" class="space-y-4 w-full max-w-lg reveal-up delay-150" novalidate>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
@@ -436,7 +543,9 @@ const jsonLd = {
             <button type="submit" class="btn-submit mt-2">Kirim via WhatsApp ↗</button>
           </form>
         </div>
-        <div class="hidden md:flex w-full md:w-1/2 h-[550px] items-center justify-center reveal-up delay-300">
+
+        <!-- Hologram — visible di SEMUA ukuran layar -->
+        <div class="w-full md:w-1/2 flex items-center justify-center reveal-up delay-300 order-1 md:order-2 py-8 md:py-0 md:h-[550px]">
           <div class="hologram-wrap">
             <div class="holo-hex-ring"></div>
             <div class="holo-hex"></div>
@@ -457,14 +566,16 @@ const jsonLd = {
             <div class="holo-data" style="top:8%;left:12%;">SYS.READY // 2026</div>
             <div class="holo-data" style="bottom:22%;right:10%;">NODE.ACTIVE</div>
             <div class="holo-data" style="top:50%;left:3%;transform:rotate(-90deg);transform-origin:left center;">FATIH.v2</div>
+            <!-- 4 partikel selalu tampil -->
             <span class="holo-particle" style="top:18%;left:22%;animation:holo-float 4s ease-in-out infinite"></span>
             <span class="holo-particle" style="top:72%;left:78%;animation:holo-float 5s ease-in-out 0.5s infinite"></span>
             <span class="holo-particle" style="top:28%;left:75%;animation:holo-float 6s ease-in-out 1s infinite"></span>
             <span class="holo-particle" style="top:78%;left:22%;animation:holo-float 4.5s ease-in-out 1.5s infinite"></span>
-            <span class="holo-particle" style="top:42%;left:10%;animation:holo-float 5.5s ease-in-out 0.8s infinite"></span>
-            <span class="holo-particle" style="top:12%;left:55%;animation:holo-float 3.5s ease-in-out 1.2s infinite"></span>
-            <span class="holo-particle" style="top:60%;left:88%;animation:holo-float 4.8s ease-in-out 0.3s infinite"></span>
-            <span class="holo-particle" style="top:88%;left:50%;animation:holo-float 5.2s ease-in-out 2s infinite"></span>
+            <!-- 4 partikel hanya desktop -->
+            <span class="holo-particle p-desktop" style="top:42%;left:10%;animation:holo-float 5.5s ease-in-out 0.8s infinite"></span>
+            <span class="holo-particle p-desktop" style="top:12%;left:55%;animation:holo-float 3.5s ease-in-out 1.2s infinite"></span>
+            <span class="holo-particle p-desktop" style="top:60%;left:88%;animation:holo-float 4.8s ease-in-out 0.3s infinite"></span>
+            <span class="holo-particle p-desktop" style="top:88%;left:50%;animation:holo-float 5.2s ease-in-out 2s infinite"></span>
           </div>
         </div>
       </div>
@@ -495,10 +606,12 @@ const jsonLd = {
     <audio id="bg-music" loop preload="none"><source src="/audio/soundtrack.mp3" type="audio/mpeg" /></audio>
 
     <div class="fab-container" role="toolbar" aria-label="Aksi cepat">
-      <button id="back-to-top" class="fab" aria-label="Kembali ke atas"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"></polyline></svg></button>
+      <button id="back-to-top" class="fab" aria-label="Kembali ke atas">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"></polyline></svg>
+      </button>
       <button id="music-toggle" class="fab" aria-label="Toggle musik">
-        <svg id="music-icon-play" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="block" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        <svg id="music-icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden" aria-hidden="true"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        <svg id="music-icon-play" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <svg id="music-icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden" aria-hidden="true"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
       </button>
     </div>
 
@@ -524,18 +637,13 @@ const jsonLd = {
         const $ = (s: string) => document.querySelector(s);
         const $$ = (s: string) => document.querySelectorAll(s);
 
-        // Preloader
         const pl = $('#preloader');
         if (pl) { if (document.readyState === 'complete') pl.classList.add('loaded'); else window.addEventListener('load', () => pl.classList.add('loaded'), { once: true }); }
 
-        // Reveal
         const ro = new IntersectionObserver(es => { for (const e of es) { if (e.isIntersecting) { e.target.classList.add('in-view'); ro.unobserve(e.target); } } }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
         $$('.reveal-up, .line-draw').forEach(el => ro.observe(el));
         _clean.push(() => ro.disconnect());
 
-        // ═══════════════════════════════════════════════
-        // FILTER — FIX: display: none menghapus dari layout
-        // ═══════════════════════════════════════════════
         const btns = $$('.filter-btn');
         let aIdx = -1, cF = -1;
 
@@ -556,29 +664,18 @@ const jsonLd = {
 
         const doFilter = (cat: string) => {
           btns.forEach(b => { const a = b.dataset.filter === cat; b.dataset.active = String(a); b.setAttribute('aria-selected', String(a)); });
-
-          // FIX UTAMA: display: none — elemen benar-benar dihapus dari layout flow
-          // scroll height langsung menyesuaikan panjangnya
           $$('.project-section').forEach(s => {
             const show = cat === 'All' || s.dataset.category === cat;
             (s as HTMLElement).style.display = show ? '' : 'none';
           });
-
-          // Recalculate posisi SETELAH display berubah
-          // (offsetTop & offsetHeight berubah saat sibling di-hide)
           cacheM();
-
-          // Tentukan section aktif berdasarkan posisi scroll saat ini
           aIdx = findActiveFromScroll();
-          cF = -1; // reset lerp agar langsung snap
+          cF = -1;
           updateDotNav();
         };
 
         btns.forEach(b => { const h = () => doFilter(b.dataset.filter || 'All'); b.addEventListener('click', h); _clean.push(() => b.removeEventListener('click', h)); });
 
-        // ═══════════════════════════════════════════════
-        // METRICS — Map indexed by projectIndex
-        // ═══════════════════════════════════════════════
         interface MEntry { el: HTMLElement; top: number; h: number; cards: HTMLElement[]; dots: HTMLElement[]; }
         let MMap = new Map<number, MEntry>();
 
@@ -586,7 +683,6 @@ const jsonLd = {
           MMap.clear();
           $$('.project-section').forEach(s => {
             const el = s as HTMLElement;
-            // display: none → offsetHeight = 0, skip
             if (!el.offsetHeight) return;
             const pi = +el.dataset.projectIndex;
             MMap.set(pi, {
@@ -598,11 +694,9 @@ const jsonLd = {
         };
         cacheM();
 
-        // Observer
         const po = new IntersectionObserver(es => {
           for (const e of es) {
             const el = e.target as HTMLElement;
-            // Hanya proses yang visible (display !== none)
             if (e.isIntersecting && el.offsetHeight > 0) {
               aIdx = +el.dataset.projectIndex || 0;
               cF = -1;
@@ -618,9 +712,6 @@ const jsonLd = {
         window.addEventListener('resize', onR, { passive: true });
         _clean.push(() => window.removeEventListener('resize', onR));
 
-        // ═══════════════════════════════════════════════
-        // SMOOTH 3D ANIMATION
-        // ═══════════════════════════════════════════════
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
         const pb = $('#scroll-progress'), hdr = $('#site-header'), btt = $('#back-to-top');
         const isMob = () => innerWidth < 768;
@@ -715,7 +806,15 @@ const jsonLd = {
         // Music
         const mus = $('#bg-music') as HTMLAudioElement, mt = $('#music-toggle'), mp = $('#music-icon-play'), mpa = $('#music-icon-pause');
         let playing = false;
-        mt?.addEventListener('click', () => { if (!mus) return; if (playing) { mus.pause(); mp?.classList.remove('hidden'); mpa?.classList.add('hidden'); mt.classList.remove('playing'); } else { mus.play().catch(() => {}); mp?.classList.add('hidden'); mpa?.classList.remove('hidden'); mt.classList.add('playing'); } playing = !playing; });
+        mt?.addEventListener('click', () => {
+          if (!mus) return;
+          if (playing) {
+            mus.pause(); mp?.classList.remove('hidden'); mpa?.classList.add('hidden'); mt.classList.remove('playing');
+          } else {
+            mus.play().catch(() => {}); mp?.classList.add('hidden'); mpa?.classList.remove('hidden'); mt.classList.add('playing');
+          }
+          playing = !playing;
+        });
 
         // Form
         const wf = $('#wa-form') as HTMLFormElement, fe = $('#form-error');
@@ -723,8 +822,7 @@ const jsonLd = {
           e.preventDefault();
           const n = ($('#wa-name') as HTMLInputElement)?.value?.trim(), t = ($('#wa-topic') as HTMLInputElement)?.value?.trim(), m = ($('#wa-message') as HTMLTextAreaElement)?.value?.trim();
           if (!n || !t || !m) { if (fe) { fe.textContent = 'Mohon lengkapi semua field.'; fe.classList.remove('hidden'); setTimeout(() => fe.classList.add('hidden'), 3000); } return; }
-          // GANTI DENGAN NOMOR WA ASLI
-          open(`https://wa.me/6285707109853?text=${encodeURIComponent(`Halo! Saya ${n}.\nTopik: ${t}\nPesan: ${m}`)}`, '_blank', 'noopener');
+          open(`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo! Saya ${n}.\nTopik: ${t}\nPesan: ${m}`)}`, '_blank', 'noopener');
         });
       }
 
