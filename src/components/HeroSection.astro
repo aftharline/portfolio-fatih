@@ -1,0 +1,19 @@
+---
+import { onMount } from 'astro/client';
+import initHeroParticles from '../../scripts/hero-particles.js';
+---
+<section class="hero-section" aria-label="Hero section">
+  <canvas class="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-content">
+    <h1 class="hero-title">Welcome to My Portfolio</h1>
+    <p class="hero-subtitle">Design, Leadership, Innovation</p>
+    <a href="#projects-container" class="hero-cta" role="button">Explore My Work</a>
+  </div>
+</section>
+
+<script is:inline>
+  onMount(() => {
+    const canvas = document.querySelector('.hero-canvas');
+    if (canvas) initHeroParticles(canvas);
+  });
+</script>

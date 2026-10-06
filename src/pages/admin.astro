@@ -103,25 +103,20 @@ import { ClientRouter } from 'astro:transitions';
   // Jalankan pengecekan saat halaman dibuka
   checkAuth();
 
+  // --- LOGOUT SYSTEM (onclick = idempoten, aman dari evaluasi ulang script oleh ClientRouter) ---
+  logoutBtn.onclick = async () => {
+    if (!confirm('Yakin mau keluar dari halaman admin, bro?')) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      alert('Gagal logout: ' + error.message);
+    } else {
+      window.location.href = '/login';
+    }
+  };
+
       async function loadProjects() {
         const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
         if (error) { listContainer.innerHTML = '<p class="text-red-500">Gagal memuat data.</p>'; return; }
-
-        // --- LOGOUT SYSTEM ---
-      logoutBtn.addEventListener('click', async () => {
-        // Kasih konfirmasi biar nggak kepencet gak sengaja
-        if (!confirm('Yakin mau keluar dari halaman admin, bro?')) return;
-        
-        // Hapus session dari Supabase
-        const { error } = await supabase.auth.signOut();
-        
-        if (error) {
-          alert('Gagal logout: ' + error.message);
-        } else {
-          // Tendang balik ke halaman utama atau halaman login
-          window.location.href = '/login';
-        }
-      });
 
         // Populate Category Dropdown
         const uniqueCategories = [...new Set(data.map((p: any) => p.category).filter(Boolean))];
@@ -168,7 +163,7 @@ import { ClientRouter } from 'astro:transitions';
       async function deleteProject(id: string, imageUrls: string[]) {
         if (!confirm('Hapus?')) return;
         for (const url of imageUrls) {
-            const fileName = url.split('/').pop();
+            const fileName = url.split('/').pop()?.split('?')[0];
             if (fileName) await supabase.storage.from('portfolio-images').remove([fileName]);
         }
         await supabase.from('projects').delete().eq('id', id);
@@ -183,12 +178,12 @@ import { ClientRouter } from 'astro:transitions';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      cancelBtn.addEventListener('click', () => {
+      cancelBtn.onclick = () => {
         form.reset(); idInput.value = ''; oldUrlsContainer.innerHTML = '';
         formTitle.innerText = 'Tambah Project'; submitBtn.innerText = 'Publish'; cancelBtn.classList.add('hidden');
-      });
+      };
 
-      form.addEventListener('submit', async (e) => {
+      form.onsubmit = async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
         const category = categoryInput.value || categorySelect.value;
@@ -209,7 +204,7 @@ import { ClientRouter } from 'astro:transitions';
             }
             if (isUpdate) {
               for (const url of finalUrls) {
-                const name = url.split('/').pop();
+                const name = url.split('/').pop()?.split('?')[0];
                 if (name) await supabase.storage.from('portfolio-images').remove([name]);
               }
             }
@@ -221,8 +216,7 @@ import { ClientRouter } from 'astro:transitions';
 
           form.reset(); cancelBtn.click(); loadProjects();
         } catch (err: any) { alert(err.message); } finally { submitBtn.disabled = false; }
-      });
-      loadProjects();
+      };
     </script>
   </body>
 </html>

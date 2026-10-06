@@ -18,20 +18,6 @@ const categories = ['All', ...new Set(projects?.map(p => p.category).filter(Bool
 const ogImage = projects?.[0]?.image_urls?.[0] || new URL('/og-image.png', Astro.url.origin).href;
 const MAX_SCROLL_IMAGES = 3;
 
-function optImg(url: string, w = 800, q = 75): string {
-  if (!url) return '';
-  try {
-    const u = new URL(url, Astro.url.origin);
-    if (u.hostname.includes('supabase.co') && u.pathname.includes('/storage/v1/object/')) {
-      u.pathname = u.pathname.replace('/object/', '/render/image/');
-      u.searchParams.set('width', String(w));
-      u.searchParams.set('quality', String(q));
-      return u.toString();
-    }
-  } catch {}
-  return url;
-}
-
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Person',
   name: 'Muhammad Abdee Nur Fatih', url: Astro.url.href,
@@ -133,7 +119,7 @@ const jsonLd = {
       /* ═══════════════════════════════════════════════════════
          SMOOTH 3D CAROUSEL
       ═══════════════════════════════════════════════════════ */
-      .project-section { position: relative; height: calc(var(--display-count) * 100svh); z-index: 1; contain: layout style; }
+      .project-section { position: relative; height: calc(var(--display-count) * 100svh); z-index: 1; }
       .project-sticky-view { position: sticky; top: 0; height: 100svh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
       .project-bg-glow { position: absolute; width: 60%; height: 50%; background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 70%); filter: blur(60px); z-index: 0; pointer-events: none; }
       .image-card-container { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
@@ -479,7 +465,7 @@ const jsonLd = {
               <div class="image-card-container">
                 {displayImages.map((url: string, imgIndex: number) => (
                   <div class="img-card" data-img-index={imgIndex}>
-                    <img src={optImg(url, 800, 75)} alt={`${project.title} - foto ${imgIndex + 1}`} class="project-image w-full h-full object-cover cursor-zoom-in" data-images={JSON.stringify(allImages)} data-index={imgIndex} loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'} />
+                    <img src={url} alt={`${project.title} - foto ${imgIndex + 1}`} class="project-image w-full h-full object-cover cursor-zoom-in" data-images={JSON.stringify(allImages)} data-index={imgIndex} loading={index === 0 && imgIndex === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={index === 0 && imgIndex === 0 ? 'high' : 'auto'} />
                     <div class="img-card-dim" aria-hidden="true"></div>
                     <div class="img-card-gloss" aria-hidden="true"></div>
                   </div>
@@ -686,13 +672,14 @@ const jsonLd = {
             if (!el.offsetHeight) return;
             const pi = +el.dataset.projectIndex;
             MMap.set(pi, {
-              el, top: el.offsetTop, h: el.offsetHeight,
+              el, top: el.getBoundingClientRect().top + scrollY, h: el.offsetHeight,
               cards: [...el.querySelectorAll('.img-card')],
               dots: [...el.querySelectorAll('[data-dot-i]')]
             });
           });
         };
         cacheM();
+        if (aIdx < 0) { const first = findActiveFromScroll(); aIdx = first >= 0 ? first : (MMap.size ? [...MMap.keys()][0] : -1); updateDotNav(); }
 
         const po = new IntersectionObserver(es => {
           for (const e of es) {
@@ -712,6 +699,15 @@ const jsonLd = {
         window.addEventListener('resize', onR, { passive: true });
         _clean.push(() => window.removeEventListener('resize', onR));
 
+        // Recache saat layout settle (image load, hidrasi hero). Sekali pakai + ResizeObserver.
+        const onLoad = () => cacheM();
+        window.addEventListener('load', onLoad, { once: true });
+        _clean.push(() => window.removeEventListener('load', onLoad));
+        let roT = 0;
+        const roL = new ResizeObserver(() => { clearTimeout(roT); roT = setTimeout(cacheM, 200); });
+        roL.observe(document.body);
+        _clean.push(() => roL.disconnect());
+
         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
         const pb = $('#scroll-progress'), hdr = $('#site-header'), btt = $('#back-to-top');
         const isMob = () => innerWidth < 768;
@@ -726,8 +722,10 @@ const jsonLd = {
 
           const d = aIdx >= 0 ? MMap.get(aIdx) : null;
           if (d) {
-            const sc = Math.max(d.h - wh, 1);
-            const p = Math.max(0, Math.min(1, (sy - d.top) / sc));
+            // Rect live: kebal terhadap pergeseran layout (hidrasi hero, image load) yang terjadi setelah cacheM
+            const r = d.el.getBoundingClientRect();
+            const sc = Math.max(r.height - wh, 1);
+            const p = Math.max(0, Math.min(1, -r.top / sc));
             const targetFocus = p * (d.cards.length - 1);
 
             if (cF < 0) cF = targetFocus;
@@ -778,28 +776,37 @@ const jsonLd = {
         // ═══════ LIGHTBOX ═══════
         let lbI: string[] = [], lbX = 0;
         const lb = $('#lightbox'), lbi = $('#lightbox-img') as HTMLImageElement, lbc = $('#lightbox-counter'), lbw = $('#img-zoom-wrapper') as HTMLElement;
-        const lbOpt = (u: string) => { if (!u) return ''; try { const x = new URL(u, location.origin); if (x.hostname.includes('supabase.co') && x.pathname.includes('/object/')) { x.pathname = x.pathname.replace('/object/', '/render/image/'); x.searchParams.set('width', '1400'); x.searchParams.set('quality', '85'); return x.toString(); } } catch {} return u; };
-        const lbUp = () => { if (lbi) { lbi.src = lbOpt(lbI[lbX]); lbi.alt = `Foto ${lbX + 1} dari ${lbI.length}`; } if (lbc) lbc.textContent = `${lbX + 1} / ${lbI.length}`; lbw.style.transform = 'scale(1)'; };
-        const lbO = (imgs: string[], idx: number) => { lbI = imgs; lbX = idx; lbUp(); lb?.classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
-        const lbC = () => { lb?.classList.add('hidden'); document.body.style.overflow = ''; };
-        const lbN = (dir: number) => { lbX = (lbX + dir + lbI.length) % lbI.length; lbUp(); };
+        const lbUp = () => { if (!lbI.length) return; if (lbi) { lbi.src = lbI[lbX]; lbi.alt = `Foto ${lbX + 1} dari ${lbI.length}`; } if (lbc) lbc.textContent = `${lbX + 1} / ${lbI.length}`; if (lbw) lbw.style.transform = 'scale(1)'; };
+        const lbO = (imgs: string[], idx: number) => { if (!imgs?.length) return; lbI = imgs; lbX = Math.max(0, Math.min(idx || 0, imgs.length - 1)); lbUp(); lb?.classList.remove('hidden'); lb?.classList.add('flex'); document.body.style.overflow = 'hidden'; };
+        const lbC = () => { lb?.classList.add('hidden'); lb?.classList.remove('flex'); document.body.style.overflow = ''; };
+        const lbN = (dir: number) => { if (!lbI.length) return; lbX = (lbX + dir + lbI.length) % lbI.length; lbUp(); };
 
-        document.addEventListener('click', e => {
+        const onLbClick = (e: Event) => {
           const img = (e.target as Element).closest?.('.project-image') as HTMLImageElement | null;
           if (img) { try { lbO(JSON.parse(img.dataset.images || '[]'), +img.dataset.index); } catch {} return; }
           const btn = (e.target as Element).closest?.('[data-open-all-images]') as HTMLElement | null;
           if (btn) { try { lbO(JSON.parse(btn.dataset.openAllImages || '[]'), 0); } catch {} }
-        });
-        $('#close-lightbox')?.addEventListener('click', lbC);
-        $('#prev-btn')?.addEventListener('click', () => lbN(-1));
-        $('#next-btn')?.addEventListener('click', () => lbN(1));
-        lb?.addEventListener('click', e => { if ((e.target as Element).classList.contains('lightbox-bg')) lbC(); });
+        };
+        document.addEventListener('click', onLbClick);
+        _clean.push(() => document.removeEventListener('click', onLbClick));
+        const closeBtn = $('#close-lightbox'), prevBtn = $('#prev-btn'), nextBtn = $('#next-btn');
+        const onPrev = () => lbN(-1), onNext = () => lbN(1);
+        closeBtn?.addEventListener('click', lbC);
+        prevBtn?.addEventListener('click', onPrev);
+        nextBtn?.addEventListener('click', onNext);
+        _clean.push(() => { closeBtn?.removeEventListener('click', lbC); prevBtn?.removeEventListener('click', onPrev); nextBtn?.removeEventListener('click', onNext); });
+        const onLbBg = (e: Event) => { if ((e.target as Element).classList.contains('lightbox-bg')) lbC(); };
+        lb?.addEventListener('click', onLbBg);
+        _clean.push(() => lb?.removeEventListener('click', onLbBg));
         const onK = (e: KeyboardEvent) => { if (lb?.classList.contains('hidden')) return; if (e.key === 'Escape') lbC(); else if (e.key === 'ArrowLeft') lbN(-1); else if (e.key === 'ArrowRight') lbN(1); };
         document.addEventListener('keydown', onK);
         _clean.push(() => document.removeEventListener('keydown', onK));
         let tx = 0;
-        lb?.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-        lb?.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) lbN(dx > 0 ? -1 : 1); }, { passive: true });
+        const onTs = (e: TouchEvent) => { tx = e.touches[0].clientX; };
+        const onTe = (e: TouchEvent) => { const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) lbN(dx > 0 ? -1 : 1); };
+        lb?.addEventListener('touchstart', onTs as EventListener, { passive: true });
+        lb?.addEventListener('touchend', onTe as EventListener, { passive: true });
+        _clean.push(() => { lb?.removeEventListener('touchstart', onTs as EventListener); lb?.removeEventListener('touchend', onTe as EventListener); });
 
         btt?.addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
 
